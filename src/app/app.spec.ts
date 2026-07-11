@@ -1,13 +1,13 @@
-import { render, screen } from '@testing-library/angular';
+import { provideRouter } from '@angular/router';
+import { render } from '@testing-library/angular';
+
 import { App } from './app';
 
 describe('App', () => {
-  it('renderiza o hero inicial', async () => {
-    await render(App);
+  it('cria o shell da aplicação com o router-outlet', async () => {
+    const { fixture } = await render(App, { providers: [provideRouter([])] });
 
-    expect(
-      screen.getByRole('heading', { level: 1, name: /master\s+the language\s+of signals/i }),
-    ).toBeVisible();
-    expect(screen.getByRole('button', { name: /start training/i })).toBeVisible();
+    expect(fixture.componentInstance).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('router-outlet')).not.toBeNull();
   });
 });
