@@ -5,15 +5,15 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { AuthService } from '../../core/auth/auth.service';
 import { Button } from '../../shared/ui/button/button';
-import { Divider } from '../../shared/ui/divider/divider';
 import { Heading } from '../../shared/ui/heading/heading';
 
 type AuthMode = 'signin' | 'register';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, Button, Divider, Heading],
+  imports: [ReactiveFormsModule, Button, Heading],
   templateUrl: './login.html',
+  host: { class: 'flex flex-1 flex-col' },
 })
 export class Login {
   readonly #auth = inject(AuthService);

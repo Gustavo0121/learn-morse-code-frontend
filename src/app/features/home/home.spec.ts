@@ -4,12 +4,10 @@ import { render, screen } from '@testing-library/angular';
 import { Home } from './home';
 
 describe('Home', () => {
-  it('renderiza o hero inicial com a chamada para o treino', async () => {
+  it('renderiza o título e a chamada para o treino', async () => {
     await render(Home, { providers: [provideRouter([])] });
 
-    expect(
-      screen.getByRole('heading', { level: 1, name: /master\s+the language\s+of signals/i }),
-    ).toBeVisible();
+    expect(screen.getByRole('heading', { level: 1, name: /learn morse code/i })).toBeVisible();
 
     const cta = screen.getByRole('link', { name: /start training/i });
     expect(cta).toBeVisible();

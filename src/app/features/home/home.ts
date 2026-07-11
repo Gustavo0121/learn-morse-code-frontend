@@ -2,29 +2,22 @@ import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { Button } from '../../shared/ui/button/button';
-import { Divider } from '../../shared/ui/divider/divider';
 import { Heading } from '../../shared/ui/heading/heading';
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, Button, Divider, Heading],
+  imports: [RouterLink, Button, Heading],
+  host: { class: 'flex flex-1 flex-col' },
   template: `
-    <main class="flex min-h-screen flex-col justify-center bg-canvas px-6 py-24 md:px-16">
-      <div class="mx-auto w-full max-w-5xl">
-        <app-heading
-          eyebrow="-- --- .-. ... ."
-          text="Master
-the language
-of signals"
-        />
+    <main class="flex flex-1 flex-col justify-center py-16">
+      <app-heading text="Learn Morse Code" />
 
-        <app-divider class="my-14" label="Training" />
+      <p class="mt-4 max-w-xl text-sm leading-relaxed text-ink-muted">
+        Treino auditivo e captura por tecla, no seu ritmo.
+      </p>
 
-        <p class="mb-14 max-w-md text-base leading-relaxed text-ink-muted">
-          Aprenda código Morse com treino auditivo e captura por tecla, no seu ritmo.
-        </p>
-
-        <a app-button size="lg" routerLink="/dashboard">Start Training</a>
+      <div class="mt-10">
+        <a app-button routerLink="/dashboard">Start Training</a>
       </div>
     </main>
   `,

@@ -9,19 +9,19 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
   selector: 'app-heading',
   template: `
     @if (eyebrow()) {
-      <p class="mb-6 font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
+      <p class="mb-3 font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
         {{ eyebrow() }}
       </p>
     }
     @if (level() === 1) {
       <h1
-        class="text-6xl md:text-8xl leading-[0.95] font-display font-extrabold tracking-tight whitespace-pre-line text-ink uppercase"
+        class="font-display text-3xl leading-tight font-extrabold tracking-tight whitespace-pre-line text-ink uppercase md:text-4xl"
       >
         {{ text() }}
       </h1>
     } @else {
       <h2
-        class="text-4xl md:text-5xl font-display leading-none font-extrabold tracking-tight whitespace-pre-line text-ink uppercase"
+        class="font-display text-xl leading-tight font-extrabold tracking-tight whitespace-pre-line text-ink uppercase md:text-2xl"
       >
         {{ text() }}
       </h2>
