@@ -17,6 +17,8 @@ npm ci
 npm start          # dev server em http://localhost:4200
 ```
 
+O dev server faz proxy de `/api` para o backend Django em `http://localhost:8000` (`proxy.conf.json`), mantendo cookies em contexto same-origin. Suba o backend antes para usar login/refresh.
+
 ## Comandos
 
 | Comando                | Descrição                         |
@@ -37,6 +39,17 @@ src/app/
 ├── shared/        # componentes visuais do design system (ui/)
 └── services/      # serviços de domínio (morse-audio, morse-input, ...)
 ```
+
+## Autenticação
+
+- **Access token só em memória** (Signal no `AuthService`) — nunca em `localStorage`/`sessionStorage`; se perde no reload, por design.
+- **Refresh token em cookie `httpOnly`** definido pelo backend; o frontend nunca lê esse cookie.
+- **Bootstrap silencioso**: `provideAppInitializer` chama `POST /api/auth/refresh` no carregamento para restaurar a sessão.
+- **Proteção CSRF**: as rotas que dependem do cookie (`/auth/refresh`, `/auth/logout`) recebem o header `X-CSRF-Protection: 1` exigido pelo backend.
+- **Refresh automático**: o `authInterceptor` anexa `Authorization: Bearer` e, em `401`, renova o token e reenvia a requisição original (requisições simultâneas compartilham um único refresh); se o refresh falhar, a sessão é limpa e o usuário volta ao login.
+- **Guard**: `authGuard` protege a área autenticada (`/dashboard`; lessons/practice/settings entram nas próximas fases) com redirect para `/login?returnUrl=...`.
+- Após login, as preferências Morse (`GET /api/users/morse-settings`) e o perfil do usuário (`GET /api/users/profile`, exposto em `AuthService.currentUser`) são carregados para memória.
+- **Cadastro**: a tela de login alterna para o modo "Create account" (`POST /api/auth/register` com `{username, email, password}`) e autentica automaticamente após criar a conta.
 
 ## Design system
 
