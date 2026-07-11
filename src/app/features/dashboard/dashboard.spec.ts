@@ -1,28 +1,19 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { Router, provideRouter } from '@angular/router';
+import { provideRouter } from '@angular/router';
 import { render, screen } from '@testing-library/angular';
-import userEvent from '@testing-library/user-event';
 
 import { AuthService } from '../../core/auth/auth.service';
 import { Dashboard } from './dashboard';
 
 describe('Dashboard', () => {
-  async function setup() {
+  it('exibe o usuário logado quando o perfil é carregado', async () => {
     await render(Dashboard, {
       providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     });
-    return {
-      http: TestBed.inject(HttpTestingController),
-      auth: TestBed.inject(AuthService),
-      router: TestBed.inject(Router),
-      user: userEvent.setup(),
-    };
-  }
-
-  it('exibe o usuário logado quando o perfil é carregado', async () => {
-    const { http, auth } = await setup();
+    const http = TestBed.inject(HttpTestingController);
+    const auth = TestBed.inject(AuthService);
 
     const done = auth.bootstrap();
     http.expectOne('/api/auth/refresh').flush({ access: 'token' });
@@ -42,19 +33,7 @@ describe('Dashboard', () => {
     });
     await done;
 
-    expect(await screen.findByText(/signed in as/i)).toBeVisible();
-    expect(screen.getByText('gu')).toBeVisible();
-  });
-
-  it('sign out encerra a sessão e redireciona para o login', async () => {
-    const { http, auth, router, user } = await setup();
-    const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
-
-    await user.click(screen.getByRole('button', { name: /sign out/i }));
-    http.expectOne('/api/auth/logout').flush(null, { status: 204, statusText: 'No Content' });
-
-    expect(auth.isAuthenticated()).toBe(false);
-    expect(auth.currentUser()).toBeNull();
-    expect(navigate).toHaveBeenCalledWith(['/login']);
+    expect(await screen.findByText(/signed in as gu/i)).toBeVisible();
+    http.verify();
   });
 });

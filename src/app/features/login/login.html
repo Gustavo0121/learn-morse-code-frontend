@@ -1,13 +1,30 @@
-<main class="flex min-h-screen flex-col justify-center bg-canvas px-6 py-24 md:px-16">
-  <div class="mx-auto w-full max-w-md">
-    <app-heading
-      eyebrow=".-.. --- --. .. -."
-      [text]="mode() === 'signin' ? 'Sign in' : 'Create account'"
-    />
+<main class="flex flex-1 flex-col justify-center py-16">
+  <div class="grid w-full gap-12 md:grid-cols-2 md:gap-24">
+    <div>
+      <app-heading [text]="mode() === 'signin' ? 'Sign in' : 'Create account'" />
+      <p class="mt-4 max-w-md text-sm leading-relaxed text-ink-muted">
+        {{
+          mode() === 'signin'
+            ? 'Entre para continuar seu treinamento.'
+            : 'Crie sua conta LMC para começar a treinar.'
+        }}
+      </p>
 
-    <app-divider class="my-12" label="Access" />
+      <button
+        class="mt-8 cursor-pointer font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted transition-colors hover:text-ink"
+        type="button"
+        (click)="toggleMode()"
+      >
+        {{ mode() === 'signin' ? 'Create an account' : 'I already have an account' }}
+      </button>
+    </div>
 
-    <form class="flex flex-col gap-10" (ngSubmit)="submit()" [formGroup]="form" novalidate>
+    <form
+      class="flex w-full max-w-md flex-col gap-8"
+      (ngSubmit)="submit()"
+      [formGroup]="form"
+      novalidate
+    >
       <div>
         <label
           class="mb-3 block font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted"
@@ -73,7 +90,7 @@
         <p class="text-sm text-error" role="alert">{{ message }}</p>
       }
 
-      <button app-button size="lg" type="submit" [disabled]="submitting()">
+      <button app-button type="submit" [disabled]="submitting()">
         @if (mode() === 'signin') {
           {{ submitting() ? 'Signing in…' : 'Sign in' }}
         } @else {
@@ -81,9 +98,5 @@
         }
       </button>
     </form>
-
-    <button app-button class="mt-8" variant="ghost" type="button" (click)="toggleMode()">
-      {{ mode() === 'signin' ? 'Create an account' : 'I already have an account' }}
-    </button>
   </div>
 </main>
