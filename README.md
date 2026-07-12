@@ -51,6 +51,13 @@ src/app/
 - Após login, as preferências Morse (`GET /api/users/morse-settings`) e o perfil do usuário (`GET /api/users/profile`, exposto em `AuthService.currentUser`) são carregados para memória.
 - **Cadastro**: a tela de login alterna para o modo "Create account" (`POST /api/auth/register` com `{username, email, password}`) e autentica automaticamente após criar a conta.
 
+## Settings (preferências Morse)
+
+- Tela `/settings` (autenticada) com blocos **Audio** (velocidade `5–60 WPM`, frequência Grave/Médio/Agudo = `400/700/1000 Hz`, volume `0–1`, tipo de onda) e **Input** (tecla de captura).
+- As opções espelham exatamente os choices/validators do backend; a tecla de captura é restrita à whitelist retornada por `GET /api/morse-settings/allowed-keys` (mesma lista que o servidor valida — nada de blacklist local).
+- Alterações passam por **confirmação visual** antes do `PUT /api/users/morse-settings`; nomes de campo seguem o contrato (`speed_wpm`, nunca `speed`).
+- **Test sound** gera o tom via Web Audio API (`MorseAudioService`); o `AudioContext` é criado apenas nesse primeiro gesto do usuário, nunca no carregamento da página.
+
 ## Design system
 
 Identidade minimalista premium (fundo `#050505`, texto `#FFFFFF`/`#A0A0A0`, fontes Inter/Manrope). Os design tokens ficam em `src/tailwind.css` (`@theme`), com contraste validado WCAG AA/AAA; o tema do Angular Material é alinhado a eles em `src/styles.scss`.
