@@ -47,7 +47,7 @@ describe('Login', () => {
     http.expectNone('/api/auth/login');
   });
 
-  it('autentica e navega para o dashboard', async () => {
+  it('autentica e navega para a tela principal', async () => {
     const { http, router, user } = await setup();
     const navigate = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
 
@@ -61,7 +61,7 @@ describe('Login', () => {
     http.expectOne('/api/users/morse-settings').flush(SETTINGS);
     http.expectOne('/api/users/profile').flush(PROFILE);
 
-    expect(navigate).toHaveBeenCalledWith('/dashboard');
+    expect(navigate).toHaveBeenCalledWith('/');
   });
 
   it('alterna para o modo de cadastro, cria a conta e navega autenticado', async () => {
@@ -89,7 +89,7 @@ describe('Login', () => {
     http.expectOne('/api/users/morse-settings').flush(SETTINGS);
     http.expectOne('/api/users/profile').flush(PROFILE);
 
-    expect(navigate).toHaveBeenCalledWith('/dashboard');
+    expect(navigate).toHaveBeenCalledWith('/');
   });
 
   it('no cadastro, exibe os erros de validação retornados pelo backend', async () => {
