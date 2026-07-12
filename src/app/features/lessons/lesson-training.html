@@ -1,0 +1,196 @@
+<main class="flex flex-1 flex-col py-12">
+  @if (error()) {
+    <p class="text-sm text-error" role="alert">Não foi possível carregar a lição.</p>
+    <div class="mt-6">
+      <button app-button variant="outline" type="button" (click)="load(id())">Try again</button>
+    </div>
+  } @else if (lesson(); as lesson) {
+    @switch (stage()) {
+      @case ('study') {
+        <app-heading eyebrow="Treino guiado" [text]="lesson.title" />
+
+        @if (lesson.characters.length === 0) {
+          <p class="mt-8 max-w-xl text-sm leading-relaxed text-ink-muted">
+            Esta lição ainda não tem conteúdo de treino.
+          </p>
+          <div class="mt-6">
+            <a app-button variant="outline" [routerLink]="['/lessons', lesson.id]">
+              Voltar à lição
+            </a>
+          </div>
+        } @else {
+          <p class="mt-6 max-w-2xl text-sm leading-relaxed text-ink-muted">
+            Conheça os caracteres desta lição — clique em cada um para ouvir o código. Em seguida, o
+            treino percorre os quatro modos de prática usando apenas este conteúdo.
+          </p>
+
+          <app-divider class="mt-10 mb-6" label="Conteúdo" />
+
+          <div class="flex flex-wrap gap-2">
+            @for (character of lesson.characters; track character.id) {
+              <button
+                class="min-w-16 cursor-pointer border border-line px-3 py-2 text-center transition-colors hover:border-ink"
+                type="button"
+                [attr.aria-label]="'Ouvir ' + character.character"
+                (click)="play(character)"
+              >
+                <span class="block font-display text-lg font-extrabold text-ink">
+                  {{ character.character }}
+                </span>
+                <span class="block text-xs text-ink-muted">{{ character.code }}</span>
+              </button>
+            }
+          </div>
+
+          <div class="mt-10">
+            <button app-button size="lg" type="button" title="Enter" (click)="start()">
+              Começar <span class="ml-2" aria-hidden="true">↵</span>
+            </button>
+          </div>
+        }
+      }
+
+      @case ('exercise') {
+        <div
+          class="flex flex-wrap items-center justify-between gap-4 font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted"
+        >
+          <span>{{ lesson.title }}</span>
+          <span class="flex items-center gap-8">
+            <span>Etapa: {{ progress() }}</span>
+            <span>Precisão: {{ accuracy() !== null ? accuracy() + '%' : '—' }}</span>
+            <a
+              class="uppercase text-ink-muted transition-colors hover:text-ink"
+              [routerLink]="['/lessons', lesson.id]"
+            >
+              Sair
+            </a>
+          </span>
+        </div>
+
+        <app-divider class="mt-4 mb-8" />
+
+        @if (result(); as result) {
+          <section class="flex flex-1 flex-col items-center justify-center gap-6 text-center">
+            @if (result.correct) {
+              <p class="font-display text-4xl font-extrabold uppercase tracking-tight text-ink">
+                Correto
+              </p>
+            } @else {
+              <p class="font-display text-4xl font-extrabold uppercase tracking-tight text-error">
+                Errado
+              </p>
+            }
+            <p class="text-sm text-ink-muted">
+              Esperado: <span class="text-ink">{{ result.expected_answer }}</span> · Sua resposta:
+              <span class="text-ink">{{ result.user_answer }}</span>
+            </p>
+            <div class="mt-4 flex items-center gap-6">
+              <button app-button type="button" title="Enter" (click)="next()">
+                Next <span class="ml-2" aria-hidden="true">↵</span>
+              </button>
+            </div>
+          </section>
+        } @else if (step(); as step) {
+          <section class="flex flex-1 flex-col items-center justify-center gap-8 text-center">
+            <p class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
+              {{ instruction() }}
+            </p>
+
+            @switch (step.mode) {
+              @case ('key_capture') {
+                <p class="font-display text-7xl font-extrabold uppercase text-ink">
+                  {{ step.question }}
+                </p>
+                <p class="min-h-8 font-display text-3xl font-extrabold tracking-widest text-ink">
+                  {{ symbols() || ' ' }}
+                </p>
+                @if (invalidPress()) {
+                  <p class="text-sm text-error" role="alert">
+                    Pressionamento longo demais para {{ inputKeyLabel() }} — ignorado.
+                  </p>
+                }
+                <p class="text-sm text-ink-muted">
+                  Pressione {{ inputKeyLabel() }} — solte para encerrar o caractere.
+                </p>
+              }
+              @case ('text_to_morse') {
+                <p class="font-display text-7xl font-extrabold uppercase text-ink">
+                  {{ step.question }}
+                </p>
+              }
+              @case ('morse_to_text') {
+                <p class="font-display text-6xl font-extrabold tracking-widest text-ink">
+                  {{ step.question }}
+                </p>
+              }
+              @case ('listening') {
+                <button app-button variant="outline" type="button" (click)="play(step.character)">
+                  Play code
+                </button>
+              }
+            }
+
+            @if (step.options; as options) {
+              <div class="flex flex-wrap items-center justify-center gap-3">
+                @for (option of options; track option) {
+                  <button
+                    class="min-w-20 cursor-pointer border border-line px-6 py-4 font-display text-xl font-extrabold text-ink transition-colors hover:border-ink"
+                    type="button"
+                    [disabled]="submitting()"
+                    (click)="answer(option)"
+                  >
+                    {{ option }}
+                  </button>
+                }
+              </div>
+            }
+
+            @if (submitError()) {
+              <p class="text-sm text-error" role="alert">Não foi possível registrar a tentativa.</p>
+              <button app-button variant="outline" type="button" (click)="retrySubmit()">
+                Try again
+              </button>
+            } @else if (submitting()) {
+              <p class="text-sm text-ink-muted">Registrando…</p>
+            }
+          </section>
+        }
+      }
+
+      @case ('done') {
+        <section class="flex flex-1 flex-col items-center justify-center gap-8 text-center">
+          <div>
+            <p class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
+              Treino concluído
+            </p>
+            <p class="mt-4 font-display text-7xl font-extrabold tracking-tight text-ink">
+              {{ accuracy() !== null ? accuracy() + '%' : '—' }}
+            </p>
+            <p
+              class="mt-2 font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted"
+            >
+              Precisão
+            </p>
+          </div>
+
+          <p class="text-sm text-ink-muted">
+            <span class="text-ink">{{ totalCorrect() }}</span> de
+            <span class="text-ink">{{ totalAnswered() }}</span> corretas em
+            <span class="text-ink">{{ lesson.title }}</span>
+          </p>
+
+          <div class="mt-2 flex items-center gap-6">
+            <button app-button type="button" title="Enter" (click)="start()">
+              Repetir <span class="ml-2" aria-hidden="true">↵</span>
+            </button>
+            <a app-button variant="outline" [routerLink]="['/lessons', lesson.id]">
+              Voltar à lição
+            </a>
+          </div>
+        </section>
+      }
+    }
+  } @else {
+    <p class="text-sm text-ink-muted">Carregando lição…</p>
+  }
+</main>

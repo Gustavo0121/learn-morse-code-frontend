@@ -16,6 +16,31 @@
       Nível {{ lesson.difficulty }}
     </p>
 
+    @if (lesson.characters.length > 0) {
+      <div class="mt-8">
+        <a app-button size="lg" [routerLink]="['/lessons', lesson.id, 'train']">Iniciar</a>
+      </div>
+
+      <app-divider class="mt-12 mb-2" label="Lesson content" />
+
+      <p class="mt-4 text-xs text-ink-muted">Clique em um caractere para ouvir o código.</p>
+      <div class="mt-6 flex flex-wrap gap-2">
+        @for (character of lesson.characters; track character.id) {
+          <button
+            class="min-w-16 cursor-pointer border border-line px-3 py-2 text-center transition-colors hover:border-ink"
+            type="button"
+            [attr.aria-label]="'Ouvir ' + character.character"
+            (click)="play(character)"
+          >
+            <span class="block font-display text-lg font-extrabold text-ink">
+              {{ character.character }}
+            </span>
+            <span class="block text-xs text-ink-muted">{{ character.code }}</span>
+          </button>
+        }
+      </div>
+    }
+
     <app-divider class="mt-12 mb-2" label="Morse alphabet" />
 
     @if (charactersError()) {

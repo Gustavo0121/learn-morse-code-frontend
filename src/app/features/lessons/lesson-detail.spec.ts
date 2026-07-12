@@ -16,6 +16,7 @@ const LESSON: Lesson = {
   description: 'A, E, I, O e U em código Morse.',
   difficulty: 2,
   order: 3,
+  characters: [],
   created_at: '2026-07-01T00:00:00Z',
 };
 
@@ -51,6 +52,29 @@ describe('LessonDetail', () => {
     expect(screen.getByRole('button', { name: 'Ouvir A' })).toBeVisible();
 
     expect(screen.getByRole('link', { name: /all lessons/i })).toHaveAttribute('href', '/lessons');
+  });
+
+  it('lição com conteúdo exibe o botão Iniciar e os caracteres da lição', async () => {
+    const { http } = await setup();
+
+    http.expectOne('/api/lessons/3').flush({ ...LESSON, characters: [CHARACTERS[0]] });
+    http.expectOne('/api/morse-characters').flush(CHARACTERS);
+
+    const start = await screen.findByRole('link', { name: /iniciar/i });
+    expect(start).toHaveAttribute('href', '/lessons/3/train');
+    expect(screen.getByText('Lesson content')).toBeVisible();
+    // O caractere aparece no conteúdo da lição e na referência do alfabeto.
+    expect(screen.getAllByRole('button', { name: 'Ouvir A' })).toHaveLength(2);
+  });
+
+  it('lição sem conteúdo não exibe o botão Iniciar', async () => {
+    const { http } = await setup();
+
+    http.expectOne('/api/lessons/3').flush(LESSON);
+    http.expectOne('/api/morse-characters').flush(CHARACTERS);
+
+    expect(await screen.findByRole('heading', { level: 1, name: /vogais/i })).toBeVisible();
+    expect(screen.queryByRole('link', { name: /iniciar/i })).not.toBeInTheDocument();
   });
 
   it('clicar em um caractere toca o código dele', async () => {

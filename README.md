@@ -73,8 +73,16 @@ src/app/
 ## Lições
 
 - `/lessons` lista a trilha (`GET /api/lessons`, já ordenada por `order`) com número, título, descrição e nível; estados de carregamento, erro (com retry) e vazio.
-- `/lessons/:id` mostra o detalhe da lição (`GET /api/lessons/{id}` via component input binding) e o **alfabeto Morse de referência** (`GET /api/morse-characters`, cacheado — conteúdo estático), agrupado em Letras/Números/Pontuação. **Clicar em um caractere toca o código dele** com as preferências do usuário.
+- `/lessons/:id` mostra o detalhe da lição (`GET /api/lessons/{id}` via component input binding), o **conteúdo da lição** (campo `characters`, relação lição↔caracteres adicionada no backend) com botão **Iniciar**, e o **alfabeto Morse de referência** (`GET /api/morse-characters`, cacheado — conteúdo estático), agrupado em Letras/Números/Pontuação. **Clicar em um caractere toca o código dele** com as preferências do usuário.
 - Falha no alfabeto não derruba a página da lição; cada bloco tem retry próprio.
+
+### Treino guiado (`/lessons/:id/train`)
+
+- **Estudo**: apresenta os caracteres da lição com áudio (clique para ouvir) antes dos exercícios.
+- **Sequência conduzida**: percorre os quatro modos em ordem fixa — Texto → Morse, Morse → Texto, Listening e Key capture — cada bloco cobrindo todos os caracteres da lição (embaralhados), do reconhecimento à produção.
+- Restrito ao conteúdo da lição: sorteio e distratores vêm apenas de `lesson.characters`.
+- Cada tentativa é registrada em `POST /api/practice/history` com o mesmo contrato do módulo de prática (conta para estatísticas e dashboard).
+- Enter conduz o fluxo (começar, avançar no resultado, repetir no resumo); ao final, resumo com precisão e acertos/total.
 
 ## Prática (`/practice`)
 
