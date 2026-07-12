@@ -20,6 +20,9 @@ const FREQUENCY_OPTIONS = [
 ] as const;
 const WAVE_OPTIONS: readonly WaveType[] = ['sine', 'square', 'triangle', 'sawtooth'];
 
+/** Amostra tocada pelo "Test sound": LMC em Morse — demonstra timbre e velocidade. */
+const TEST_SEQUENCE = '.-.. -- -.-.';
+
 interface Feedback {
   kind: 'success' | 'error';
   text: string;
@@ -94,7 +97,7 @@ export class Settings {
   protected testSound(): void {
     const draft = this.draft();
     if (draft) {
-      void this.#audio.playTone(draft);
+      void this.#audio.playSequence(TEST_SEQUENCE, draft);
     }
   }
 
