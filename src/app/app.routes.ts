@@ -25,6 +25,14 @@ export const routes: Routes = [
         path: 'settings',
         loadComponent: () => import('./features/settings/settings').then((m) => m.Settings),
       },
+      {
+        path: 'lessons',
+        loadComponent: () => import('./features/lessons/lessons').then((m) => m.Lessons),
+      },
+      {
+        path: 'lessons/:id',
+        loadComponent: () => import('./features/lessons/lesson-detail').then((m) => m.LessonDetail),
+      },
     ],
   },
   { path: '**', redirectTo: '' },
