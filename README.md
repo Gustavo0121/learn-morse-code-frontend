@@ -70,6 +70,12 @@ src/app/
 - A classificação usa **exatamente a regra do backend** (`morse-timing.ts` ⇄ `apps/practice/services.py`): ponto abaixo de 2 unidades (`1200/speed_wpm` ms), traço a partir daí, e `symbol: null` quando a duração sai da faixa `0 < d < 6 unidades` que o servidor aceita — a UI sinaliza entrada inválida em vez de divergir da validação do backend.
 - Robustez: ignora auto-repeat da tecla segurada, ignora outras teclas, faz `preventDefault` só na tecla de captura (Space não rola a página) e descarta pressões interrompidas por perda de foco da janela.
 
+## Lições
+
+- `/lessons` lista a trilha (`GET /api/lessons`, já ordenada por `order`) com número, título, descrição e nível; estados de carregamento, erro (com retry) e vazio.
+- `/lessons/:id` mostra o detalhe da lição (`GET /api/lessons/{id}` via component input binding) e o **alfabeto Morse de referência** (`GET /api/morse-characters`, cacheado — conteúdo estático), agrupado em Letras/Números/Pontuação. **Clicar em um caractere toca o código dele** com as preferências do usuário.
+- Falha no alfabeto não derruba a página da lição; cada bloco tem retry próprio.
+
 ## Design system
 
 Identidade minimalista premium (fundo `#050505`, texto `#FFFFFF`/`#A0A0A0`, fontes Inter/Manrope). Os design tokens ficam em `src/tailwind.css` (`@theme`), com contraste validado WCAG AA/AAA; o tema do Angular Material é alinhado a eles em `src/styles.scss`.
