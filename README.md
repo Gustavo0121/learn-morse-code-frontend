@@ -64,6 +64,12 @@ src/app/
 - `playSequence(code, settings)` reproduz sequências (`'.'`/`'-'`, espaço entre letras, `/` entre palavras) com timing derivado de `speed_wpm` pelo padrão PARIS (ponto = `1200/wpm` ms; traço 3 unidades; pausas 1/3/7). A fórmula vive em `services/morse-timing.ts` e será a mesma usada pela classificação de captura (Fase 4), mantendo consistência com a validação do backend.
 - O `AudioContext` é criado de forma lazy no primeiro gesto do usuário (nunca no carregamento da página); tons agendados na timeline do contexto com rampa de ganho anti-click; `stop()`/nova reprodução interrompem a anterior com segurança, e o estado é exposto no signal `playing`.
 
+## Captura de entrada Morse (`MorseInputService`)
+
+- `startCapture()`/`stopCapture()` registram os listeners de `keydown`/`keyup` da tecla configurada (das preferências; `setInputKey()` sobrepõe em tempo de execução) e `onSymbolDetected()` emite cada pressionamento com duração e símbolo.
+- A classificação usa **exatamente a regra do backend** (`morse-timing.ts` ⇄ `apps/practice/services.py`): ponto abaixo de 2 unidades (`1200/speed_wpm` ms), traço a partir daí, e `symbol: null` quando a duração sai da faixa `0 < d < 6 unidades` que o servidor aceita — a UI sinaliza entrada inválida em vez de divergir da validação do backend.
+- Robustez: ignora auto-repeat da tecla segurada, ignora outras teclas, faz `preventDefault` só na tecla de captura (Space não rola a página) e descarta pressões interrompidas por perda de foco da janela.
+
 ## Design system
 
 Identidade minimalista premium (fundo `#050505`, texto `#FFFFFF`/`#A0A0A0`, fontes Inter/Manrope). Os design tokens ficam em `src/tailwind.css` (`@theme`), com contraste validado WCAG AA/AAA; o tema do Angular Material é alinhado a eles em `src/styles.scss`.
