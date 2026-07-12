@@ -33,6 +33,10 @@ export const routes: Routes = [
         path: 'lessons/:id',
         loadComponent: () => import('./features/lessons/lesson-detail').then((m) => m.LessonDetail),
       },
+      {
+        path: 'practice',
+        loadComponent: () => import('./features/practice/practice').then((m) => m.Practice),
+      },
     ],
   },
   { path: '**', redirectTo: '' },

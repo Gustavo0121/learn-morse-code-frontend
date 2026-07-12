@@ -17,7 +17,7 @@ import { Heading } from '../../shared/ui/heading/heading';
       </p>
 
       <div class="mt-10">
-        <a app-button routerLink="/dashboard">Start Training</a>
+        <a app-button routerLink="/practice">Start Training</a>
       </div>
     </main>
   `,
