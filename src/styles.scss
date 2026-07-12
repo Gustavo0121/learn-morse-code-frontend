@@ -1,0 +1,64 @@
+// Tema Angular Material (Material 3) alinhado à identidade visual do produto:
+// fundo quase-preto, texto branco/cinza, alto contraste, sem cor vibrante.
+// Os tokens de marca (--color-*) são definidos em src/tailwind.css (@theme).
+@use '@angular/material' as mat;
+
+html {
+  height: 100%;
+
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$azure-palette,
+        tertiary: mat.$blue-palette,
+      ),
+      typography: (
+        plain-family: Inter,
+        brand-family: Manrope,
+      ),
+      density: 0,
+    )
+  );
+
+  // Sobrescreve as variáveis de sistema do Material para a paleta monocromática
+  // do design system (Material gera tons azulados por padrão).
+  --mat-sys-surface: var(--color-canvas);
+  --mat-sys-surface-container: var(--color-surface);
+  --mat-sys-on-surface: var(--color-ink);
+  --mat-sys-on-surface-variant: var(--color-ink-muted);
+  --mat-sys-outline: var(--color-line);
+  --mat-sys-outline-variant: var(--color-line);
+  --mat-sys-primary: var(--color-ink);
+  --mat-sys-on-primary: var(--color-canvas);
+  --mat-sys-error: var(--color-error);
+}
+
+body {
+  color-scheme: dark;
+
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+
+  margin: 0;
+  height: 100%;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+}
+
+// Estado de foco visível e de alto contraste em toda a aplicação (WCAG 2.4.7).
+:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 3px;
+}
+
+::selection {
+  background-color: var(--color-ink);
+  color: var(--color-canvas);
+}

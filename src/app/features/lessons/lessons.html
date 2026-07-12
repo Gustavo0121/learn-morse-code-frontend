@@ -1,0 +1,52 @@
+<main class="flex flex-1 flex-col py-12">
+  <app-heading text="Lessons" />
+
+  <app-divider class="mt-10" label="Trail" />
+
+  @if (error()) {
+    <p class="mt-8 text-sm text-error" role="alert">{{ i18n.t('lessons.error') }}</p>
+    <div class="mt-6">
+      <button app-button variant="outline" type="button" (click)="load()">Try again</button>
+    </div>
+  } @else if (lessons(); as lessons) {
+    @if (lessons.length === 0) {
+      <p class="mt-8 text-sm text-ink-muted">{{ i18n.t('lessons.empty') }}</p>
+    } @else {
+      <ol>
+        @for (lesson of lessons; track lesson.id) {
+          <li>
+            <a
+              class="group flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2 border-b border-line py-6"
+              [routerLink]="['/lessons', lesson.id]"
+            >
+              <span class="flex min-w-0 items-baseline gap-6">
+                <span class="font-display text-xs font-bold text-ink-muted">
+                  {{ pad(lesson.order) }}
+                </span>
+                <span class="min-w-0">
+                  <span
+                    class="block font-display text-lg font-extrabold uppercase tracking-tight text-ink transition-colors group-hover:text-accent"
+                  >
+                    {{ lesson.title }}
+                  </span>
+                  @if (lesson.description) {
+                    <span class="mt-1 block max-w-xl truncate text-sm text-ink-muted">
+                      {{ lesson.description }}
+                    </span>
+                  }
+                </span>
+              </span>
+              <span
+                class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted"
+              >
+                {{ i18n.t('common.level', { level: lesson.difficulty }) }}
+              </span>
+            </a>
+          </li>
+        }
+      </ol>
+    }
+  } @else {
+    <p class="mt-8 text-sm text-ink-muted">{{ i18n.t('lessons.loading') }}</p>
+  }
+</main>

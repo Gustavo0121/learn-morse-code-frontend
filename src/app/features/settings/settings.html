@@ -1,0 +1,149 @@
+<main class="flex flex-1 flex-col py-12">
+  <app-heading text="Settings" />
+
+  @if (draft(); as draft) {
+    <app-divider class="mt-10 mb-8" label="Audio" />
+
+    <div class="flex flex-col gap-8">
+      <div class="grid items-center gap-3 md:grid-cols-[10rem_1fr]">
+        <span class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
+          Speed
+        </span>
+        <div class="flex flex-wrap items-center gap-2">
+          @for (option of speedOptions; track option) {
+            <button
+              [class]="optionClass(draft.speed_wpm === option)"
+              type="button"
+              [attr.aria-pressed]="draft.speed_wpm === option"
+              (click)="update('speed_wpm', option)"
+            >
+              {{ option }}
+            </button>
+          }
+          <span class="ml-2 text-xs text-ink-muted">wpm</span>
+        </div>
+      </div>
+
+      <div class="grid items-center gap-3 md:grid-cols-[10rem_1fr]">
+        <span class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
+          Frequency
+        </span>
+        <div class="flex flex-wrap items-center gap-2">
+          @for (option of frequencyOptions; track option.value) {
+            <button
+              [class]="optionClass(draft.frequency === option.value)"
+              type="button"
+              [attr.aria-pressed]="draft.frequency === option.value"
+              (click)="update('frequency', option.value)"
+            >
+              {{ i18n.t(option.label) }} · {{ option.value }} Hz
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="grid items-center gap-3 md:grid-cols-[10rem_1fr]">
+        <span class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
+          Wave
+        </span>
+        <div class="flex flex-wrap items-center gap-2">
+          @for (option of waveOptions; track option) {
+            <button
+              [class]="optionClass(draft.wave_type === option)"
+              type="button"
+              [attr.aria-pressed]="draft.wave_type === option"
+              (click)="update('wave_type', option)"
+            >
+              {{ option }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="grid items-center gap-3 md:grid-cols-[10rem_1fr]">
+        <span class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
+          Volume
+        </span>
+        <div class="flex items-center gap-4">
+          <input
+            class="w-full max-w-xs accent-ink"
+            type="range"
+            min="0"
+            max="1"
+            step="0.05"
+            aria-label="Volume"
+            [value]="draft.volume"
+            (input)="onVolumeInput($event)"
+          />
+          <span class="w-12 text-xs text-ink-muted">{{ (draft.volume * 100).toFixed(0) }}%</span>
+        </div>
+      </div>
+
+      <div>
+        <button app-button variant="outline" type="button" (click)="testSound()">Test sound</button>
+      </div>
+    </div>
+
+    <app-divider class="mt-12 mb-8" label="Input" />
+
+    <div class="grid items-start gap-3 md:grid-cols-[10rem_1fr]">
+      <span class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
+        Capture key
+      </span>
+      <div>
+        <p class="mb-4 font-display text-2xl font-extrabold uppercase tracking-tight text-ink">
+          {{ draft.input_key }}
+        </p>
+        @if (allowedKeys(); as keys) {
+          <div class="flex flex-wrap items-center gap-2">
+            @for (key of keys; track key) {
+              <button
+                [class]="optionClass(draft.input_key === key)"
+                type="button"
+                [attr.aria-pressed]="draft.input_key === key"
+                (click)="update('input_key', key)"
+              >
+                {{ key }}
+              </button>
+            }
+          </div>
+          <p class="mt-3 text-xs text-ink-muted">
+            {{ i18n.t('settings.allowedKeysHint') }}
+          </p>
+        } @else {
+          <p class="text-sm text-error">{{ i18n.t('settings.allowedKeysError') }}</p>
+        }
+      </div>
+    </div>
+
+    <app-divider class="mt-12 mb-8" />
+
+    <div class="flex min-h-14 flex-wrap items-center gap-6">
+      @if (confirming()) {
+        <p class="text-sm text-ink-muted">{{ i18n.t('settings.confirmPrompt') }}</p>
+        <button app-button type="button" [disabled]="saving()" (click)="confirmSave()">
+          {{ saving() ? 'Saving…' : 'Confirm' }}
+        </button>
+        <button
+          class="cursor-pointer font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted transition-colors hover:text-ink"
+          type="button"
+          (click)="cancelSave()"
+        >
+          Cancel
+        </button>
+      } @else {
+        <button app-button type="button" [disabled]="!dirty()" (click)="requestSave()">Save</button>
+      }
+
+      @if (feedback(); as feedback) {
+        @if (feedback.kind === 'success') {
+          <p class="text-sm text-ink-muted" role="status">{{ feedback.text }}</p>
+        } @else {
+          <p class="text-sm text-error" role="alert">{{ feedback.text }}</p>
+        }
+      }
+    </div>
+  } @else {
+    <p class="mt-10 text-sm text-ink-muted">{{ i18n.t('settings.loading') }}</p>
+  }
+</main>
