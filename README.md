@@ -47,7 +47,7 @@ src/app/
 - **Bootstrap silencioso**: `provideAppInitializer` chama `POST /api/auth/refresh` no carregamento para restaurar a sessão.
 - **Proteção CSRF**: as rotas que dependem do cookie (`/auth/refresh`, `/auth/logout`) recebem o header `X-CSRF-Protection: 1` exigido pelo backend.
 - **Refresh automático**: o `authInterceptor` anexa `Authorization: Bearer` e, em `401`, renova o token e reenvia a requisição original (requisições simultâneas compartilham um único refresh); se o refresh falhar, a sessão é limpa e o usuário volta ao login.
-- **Guard**: `authGuard` protege a área autenticada (`/dashboard`; lessons/practice/settings entram nas próximas fases) com redirect para `/login?returnUrl=...`.
+- **Guard**: `authGuard` protege a área autenticada (`/dashboard`, `/lessons`, `/practice`, `/settings`) com redirect para `/login?returnUrl=...`.
 - Após login, as preferências Morse (`GET /api/users/morse-settings`) e o perfil do usuário (`GET /api/users/profile`, exposto em `AuthService.currentUser`) são carregados para memória.
 - **Cadastro**: a tela de login alterna para o modo "Create account" (`POST /api/auth/register` com `{username, email, password}`) e autentica automaticamente após criar a conta.
 
@@ -83,6 +83,12 @@ src/app/
 - No key_capture, os símbolos aparecem conforme a captura (`.-`); uma pausa (gap de palavra, mínimo 600 ms) encerra o caractere e envia automaticamente. Pressionamentos fora da faixa aceita pelo backend são descartados com aviso — nunca entram no envio.
 - Envio para `POST /api/practice/history` com os campos exatos do contrato: key_capture manda `press_durations` + `input_method` (o backend reclassifica e deriva `user_answer`); os demais mandam `user_answer`; `correct` nunca é enviado. Erro de rede oferece retry com o mesmo payload.
 - Feedback de acerto/erro com resposta esperada, resposta dada e tempo de reação.
+
+## Dashboard (`/dashboard`)
+
+- Bloco **Progress** com o agregado de `GET /api/users/statistics` (calculado só no backend): precisão, velocidade média (cpm), tempo total de treino e acertos/tentativas. Sem tentativas registradas, precisão e velocidade aparecem como `—`.
+- Bloco **Recent training** com os últimos 8 registros de `GET /api/practice/history` (já ordenado do mais recente): acerto/erro, questão → resposta, modo, tempo de reação e data. Estado vazio traz chamada para `/practice`.
+- Cada bloco tem carregamento, erro e retry independentes — a falha de um não derruba o outro.
 
 ## Design system
 

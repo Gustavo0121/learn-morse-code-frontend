@@ -81,7 +81,7 @@ export class Login {
   /** Apenas caminhos internos são aceitos como destino pós-login. */
   #returnUrl(): string {
     const returnUrl = this.#route.snapshot.queryParamMap.get('returnUrl');
-    return returnUrl?.startsWith('/') ? returnUrl : '/dashboard';
+    return returnUrl?.startsWith('/') ? returnUrl : '/';
   }
 
   #messageFor(error: unknown): string {
