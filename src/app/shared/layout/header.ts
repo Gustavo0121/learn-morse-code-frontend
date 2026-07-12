@@ -29,6 +29,9 @@ import { AuthService } from '../../core/auth/auth.service';
           <a class="text-ink-muted transition-colors hover:text-ink" routerLink="/dashboard">
             Dashboard
           </a>
+          <a class="text-ink-muted transition-colors hover:text-ink" routerLink="/settings">
+            Settings
+          </a>
           <button
             class="cursor-pointer text-ink-muted uppercase transition-colors hover:text-ink"
             type="button"
