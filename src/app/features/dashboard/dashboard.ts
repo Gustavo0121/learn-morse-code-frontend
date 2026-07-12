@@ -3,6 +3,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { AuthService } from '../../core/auth/auth.service';
+import { I18nService } from '../../core/i18n/i18n.service';
 import { PracticeRecord, PracticeService } from '../../services/practice.service';
 import { StatisticsService, UserStatistics } from '../../services/statistics.service';
 import { Button } from '../../shared/ui/button/button';
@@ -11,12 +12,6 @@ import { Heading } from '../../shared/ui/heading/heading';
 
 /** Quantos registros do histórico aparecem no bloco "últimos treinamentos". */
 const RECENT_LIMIT = 8;
-
-const EXERCISE_LABELS: Record<PracticeRecord['exercise_type'], string> = {
-  key_capture: 'Key capture',
-  multiple_choice: 'Múltipla escolha',
-  listening: 'Listening',
-};
 
 interface StatItem {
   label: string;
@@ -47,6 +42,7 @@ export class Dashboard {
   readonly #auth = inject(AuthService);
   readonly #statisticsService = inject(StatisticsService);
   readonly #practiceService = inject(PracticeService);
+  protected readonly i18n = inject(I18nService);
 
   protected readonly eyebrow = computed(() => {
     const user = this.#auth.currentUser();
@@ -66,13 +62,22 @@ export class Dashboard {
     }
     const hasAttempts = stats.characters_seen > 0;
     return [
-      { label: 'Precisão', value: hasAttempts ? `${Math.round(stats.accuracy * 100)}%` : '—' },
       {
-        label: 'Velocidade média',
+        label: this.i18n.t('common.accuracy'),
+        value: hasAttempts ? `${Math.round(stats.accuracy * 100)}%` : '—',
+      },
+      {
+        label: this.i18n.t('dashboard.statSpeed'),
         value: hasAttempts ? `${stats.average_speed.toFixed(1)} cpm` : '—',
       },
-      { label: 'Tempo de treino', value: formatDuration(stats.training_time) },
-      { label: 'Acertos', value: `${stats.characters_correct}/${stats.characters_seen}` },
+      {
+        label: this.i18n.t('dashboard.statTrainingTime'),
+        value: formatDuration(stats.training_time),
+      },
+      {
+        label: this.i18n.t('dashboard.statCorrect'),
+        value: `${stats.characters_correct}/${stats.characters_seen}`,
+      },
     ];
   });
 
@@ -106,7 +111,10 @@ export class Dashboard {
   }
 
   protected exerciseLabel(record: PracticeRecord): string {
-    return EXERCISE_LABELS[record.exercise_type];
+    if (record.exercise_type === 'multiple_choice') {
+      return this.i18n.t('dashboard.multipleChoice');
+    }
+    return record.exercise_type === 'key_capture' ? 'Key capture' : 'Listening';
   }
 
   protected seconds(ms: number): string {

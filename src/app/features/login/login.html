@@ -3,11 +3,7 @@
     <div>
       <app-heading [text]="mode() === 'signin' ? 'Sign in' : 'Create account'" />
       <p class="mt-4 max-w-md text-sm leading-relaxed text-ink-muted">
-        {{
-          mode() === 'signin'
-            ? 'Entre para continuar seu treinamento.'
-            : 'Crie sua conta LMC para começar a treinar.'
-        }}
+        {{ i18n.t(mode() === 'signin' ? 'login.signinIntro' : 'login.registerIntro') }}
       </p>
 
       <button
@@ -40,7 +36,7 @@
           autocomplete="username"
         />
         @if (form.controls.username.touched && form.controls.username.hasError('required')) {
-          <p class="mt-2 text-sm text-error">Informe o usuário.</p>
+          <p class="mt-2 text-sm text-error">{{ i18n.t('login.usernameRequired') }}</p>
         }
       </div>
 
@@ -60,9 +56,9 @@
             autocomplete="email"
           />
           @if (form.controls.email.touched && form.controls.email.hasError('required')) {
-            <p class="mt-2 text-sm text-error">Informe o e-mail.</p>
+            <p class="mt-2 text-sm text-error">{{ i18n.t('login.emailRequired') }}</p>
           } @else if (form.controls.email.touched && form.controls.email.hasError('email')) {
-            <p class="mt-2 text-sm text-error">E-mail inválido.</p>
+            <p class="mt-2 text-sm text-error">{{ i18n.t('login.emailInvalid') }}</p>
           }
         </div>
       }
@@ -82,7 +78,7 @@
           [autocomplete]="mode() === 'signin' ? 'current-password' : 'new-password'"
         />
         @if (form.controls.password.touched && form.controls.password.hasError('required')) {
-          <p class="mt-2 text-sm text-error">Informe a senha.</p>
+          <p class="mt-2 text-sm text-error">{{ i18n.t('login.passwordRequired') }}</p>
         }
       </div>
 

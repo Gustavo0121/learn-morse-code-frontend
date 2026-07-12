@@ -73,8 +73,16 @@ src/app/
 ## Lições
 
 - `/lessons` lista a trilha (`GET /api/lessons`, já ordenada por `order`) com número, título, descrição e nível; estados de carregamento, erro (com retry) e vazio.
-- `/lessons/:id` mostra o detalhe da lição (`GET /api/lessons/{id}` via component input binding) e o **alfabeto Morse de referência** (`GET /api/morse-characters`, cacheado — conteúdo estático), agrupado em Letras/Números/Pontuação. **Clicar em um caractere toca o código dele** com as preferências do usuário.
+- `/lessons/:id` mostra o detalhe da lição (`GET /api/lessons/{id}` via component input binding), o **conteúdo da lição** (campo `characters`, relação lição↔caracteres adicionada no backend) com botão **Iniciar**, e o **alfabeto Morse de referência** (`GET /api/morse-characters`, cacheado — conteúdo estático), agrupado em Letras/Números/Pontuação. **Clicar em um caractere toca o código dele** com as preferências do usuário.
 - Falha no alfabeto não derruba a página da lição; cada bloco tem retry próprio.
+
+### Treino guiado (`/lessons/:id/train`)
+
+- **Estudo**: apresenta os caracteres da lição com áudio (clique para ouvir) antes dos exercícios.
+- **Sequência conduzida**: percorre os quatro modos em ordem fixa — Texto → Morse, Morse → Texto, Listening e Key capture — cada bloco cobrindo todos os caracteres da lição (embaralhados), do reconhecimento à produção.
+- Restrito ao conteúdo da lição: sorteio e distratores vêm apenas de `lesson.characters`.
+- Cada tentativa é registrada em `POST /api/practice/history` com o mesmo contrato do módulo de prática (conta para estatísticas e dashboard).
+- Enter conduz o fluxo (começar, avançar no resultado, repetir no resumo); ao final, resumo com precisão e acertos/total.
 
 ## Prática (`/practice`)
 
@@ -91,6 +99,12 @@ src/app/
 - Bloco **Progress** com o agregado de `GET /api/users/statistics` (calculado só no backend): precisão, velocidade média (cpm), tempo total de treino e acertos/tentativas. Sem tentativas registradas, precisão e velocidade aparecem como `—`.
 - Bloco **Recent training** com os últimos 8 registros de `GET /api/practice/history` (já ordenado do mais recente): acerto/erro, questão → resposta, modo, tempo de reação e data. Estado vazio traz chamada para `/practice`.
 - Cada bloco tem carregamento, erro e retry independentes — a falha de um não derruba o outro.
+
+## Idiomas (i18n)
+
+- Seletor **PT / EN** no header, persistido em `localStorage` (`lmc.locale`; preferência de idioma, não é dado sensível). Padrão: `pt`.
+- Tradução em runtime via `I18nService` (`core/i18n/`): `t(chave, params?)` lê o signal `locale`, então bindings e computeds que o chamam reagem à troca de idioma sem reload.
+- Dicionário tipado em `core/i18n/messages.ts` (`MessageKey` é união literal — chave inexistente não compila). O locale `pt` corresponde à UI original; rótulos editoriais em inglês do design (headings, "Sign in", "Next", barras da prática) são iguais nos dois idiomas e ficam fora do dicionário.
 
 ## Design system
 

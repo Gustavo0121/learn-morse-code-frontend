@@ -6,6 +6,7 @@ import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 
 import { AuthService } from '../../core/auth/auth.service';
+import { I18nService } from '../../core/i18n/i18n.service';
 import { Header } from './header';
 
 describe('Header', () => {
@@ -52,6 +53,22 @@ describe('Header', () => {
     expect(screen.getByRole('link', { name: /lessons/i })).toHaveAttribute('href', '/lessons');
     expect(screen.getByRole('link', { name: /settings/i })).toHaveAttribute('href', '/settings');
     expect(screen.queryByRole('link', { name: /sign in/i })).not.toBeInTheDocument();
+  });
+
+  it('alterna o idioma no seletor PT/EN e persiste a escolha', async () => {
+    const { user } = await setup();
+    const i18n = TestBed.inject(I18nService);
+
+    expect(screen.getByRole('button', { name: 'PT' })).toHaveAttribute('aria-pressed', 'true');
+
+    await user.click(screen.getByRole('button', { name: 'EN' }));
+
+    expect(i18n.locale()).toBe('en');
+    expect(screen.getByRole('button', { name: 'EN' })).toHaveAttribute('aria-pressed', 'true');
+    expect(localStorage.getItem('lmc.locale')).toBe('en');
+
+    await user.click(screen.getByRole('button', { name: 'PT' }));
+    expect(i18n.locale()).toBe('pt');
   });
 
   it('sign out encerra a sessão e redireciona para o login', async () => {

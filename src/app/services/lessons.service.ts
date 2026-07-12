@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../environments/environment';
+import { MorseCharacter } from './morse-characters.service';
 
 /** Lição da trilha — contrato de GET /api/lessons e /api/lessons/{id}. */
 export interface Lesson {
@@ -11,6 +12,8 @@ export interface Lesson {
   description: string;
   difficulty: number;
   order: number;
+  /** Conteúdo da lição: caracteres usados no treino guiado. */
+  characters: MorseCharacter[];
   created_at: string;
 }
 

@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { AuthService } from '../../core/auth/auth.service';
+import { I18nService } from '../../core/i18n/i18n.service';
 
 /**
  * Header persistente da aplicação (estilo monkeytype): marca LMC à esquerda,
@@ -24,6 +25,38 @@ import { AuthService } from '../../core/auth/auth.service';
       </a>
 
       <nav class="flex items-center gap-7" aria-label="Principal">
+        <span
+          class="flex items-center gap-1 font-display text-xs font-bold uppercase tracking-wide-caps"
+          role="group"
+          aria-label="Idioma"
+        >
+          <button
+            class="cursor-pointer transition-colors"
+            [class.text-ink]="i18n.locale() === 'pt'"
+            [class.text-ink-muted]="i18n.locale() !== 'pt'"
+            [class.hover:text-ink]="i18n.locale() !== 'pt'"
+            type="button"
+            [attr.aria-pressed]="i18n.locale() === 'pt'"
+            title="Português"
+            (click)="i18n.setLocale('pt')"
+          >
+            PT
+          </button>
+          <span class="text-ink-muted" aria-hidden="true">/</span>
+          <button
+            class="cursor-pointer transition-colors"
+            [class.text-ink]="i18n.locale() === 'en'"
+            [class.text-ink-muted]="i18n.locale() !== 'en'"
+            [class.hover:text-ink]="i18n.locale() !== 'en'"
+            type="button"
+            [attr.aria-pressed]="i18n.locale() === 'en'"
+            title="English"
+            (click)="i18n.setLocale('en')"
+          >
+            EN
+          </button>
+        </span>
+
         @if (authenticated()) {
           <a
             class="text-ink-muted transition-colors hover:text-ink"
@@ -152,6 +185,7 @@ import { AuthService } from '../../core/auth/auth.service';
 export class Header {
   readonly #auth = inject(AuthService);
 
+  protected readonly i18n = inject(I18nService);
   protected readonly authenticated = this.#auth.isAuthenticated;
 
   protected logout(): void {

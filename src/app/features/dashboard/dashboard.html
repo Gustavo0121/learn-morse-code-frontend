@@ -4,7 +4,7 @@
   <app-divider class="mt-10" label="Progress" />
 
   @if (statsError()) {
-    <p class="mt-8 text-sm text-error" role="alert">Não foi possível carregar as estatísticas.</p>
+    <p class="mt-8 text-sm text-error" role="alert">{{ i18n.t('dashboard.statsError') }}</p>
     <div class="mt-6">
       <button app-button variant="outline" type="button" (click)="loadStats()">Try again</button>
     </div>
@@ -22,21 +22,20 @@
       }
     </dl>
   } @else {
-    <p class="mt-8 text-sm text-ink-muted">Carregando estatísticas…</p>
+    <p class="mt-8 text-sm text-ink-muted">{{ i18n.t('dashboard.statsLoading') }}</p>
   }
 
   <app-divider class="mt-14" label="Recent training" />
 
   @if (historyError()) {
-    <p class="mt-8 text-sm text-error" role="alert">Não foi possível carregar o histórico.</p>
+    <p class="mt-8 text-sm text-error" role="alert">{{ i18n.t('dashboard.historyError') }}</p>
     <div class="mt-6">
       <button app-button variant="outline" type="button" (click)="loadHistory()">Try again</button>
     </div>
   } @else if (recent(); as recent) {
     @if (recent.length === 0) {
       <p class="mt-8 max-w-xl text-sm leading-relaxed text-ink-muted">
-        Nenhum treinamento registrado ainda. Complete um exercício para acompanhar sua evolução
-        aqui.
+        {{ i18n.t('dashboard.empty') }}
       </p>
       <div class="mt-6">
         <a app-button routerLink="/practice">Start training</a>
@@ -53,7 +52,7 @@
                 [class.text-ink]="record.correct"
                 [class.text-error]="!record.correct"
               >
-                {{ record.correct ? 'Acerto' : 'Erro' }}
+                {{ i18n.t(record.correct ? 'dashboard.hit' : 'dashboard.miss') }}
               </span>
               <span class="min-w-0">
                 <span class="block font-display text-lg font-extrabold tracking-widest text-ink">
@@ -76,6 +75,6 @@
       </ol>
     }
   } @else {
-    <p class="mt-8 text-sm text-ink-muted">Carregando histórico…</p>
+    <p class="mt-8 text-sm text-ink-muted">{{ i18n.t('dashboard.historyLoading') }}</p>
   }
 </main>

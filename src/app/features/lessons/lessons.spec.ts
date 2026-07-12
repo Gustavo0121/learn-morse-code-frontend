@@ -15,6 +15,7 @@ const LESSONS: Lesson[] = [
     description: 'E e T — os códigos mais curtos.',
     difficulty: 1,
     order: 1,
+    characters: [],
     created_at: '2026-07-01T00:00:00Z',
   },
   {
@@ -23,6 +24,7 @@ const LESSONS: Lesson[] = [
     description: '',
     difficulty: 2,
     order: 2,
+    characters: [],
     created_at: '2026-07-02T00:00:00Z',
   },
 ];

@@ -4,6 +4,7 @@ import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angula
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { AuthService } from '../../core/auth/auth.service';
+import { I18nService } from '../../core/i18n/i18n.service';
 import { Button } from '../../shared/ui/button/button';
 import { Heading } from '../../shared/ui/heading/heading';
 
@@ -21,6 +22,7 @@ export class Login {
   readonly #route = inject(ActivatedRoute);
   readonly #formBuilder = inject(NonNullableFormBuilder);
 
+  protected readonly i18n = inject(I18nService);
   protected readonly mode = signal<AuthMode>('signin');
 
   protected readonly form = this.#formBuilder.group({
@@ -86,20 +88,18 @@ export class Login {
 
   #messageFor(error: unknown): string {
     if (!(error instanceof HttpErrorResponse)) {
-      return 'Não foi possível concluir. Tente novamente em instantes.';
+      return this.i18n.t('login.genericError');
     }
     if (error.status === 429) {
-      return 'Muitas tentativas. Aguarde um instante e tente novamente.';
+      return this.i18n.t('login.tooManyAttempts');
     }
     if (this.mode() === 'register' && error.status === 400) {
-      return (
-        this.#fieldErrors(error.error) ?? 'Não foi possível criar a conta. Verifique os dados.'
-      );
+      return this.#fieldErrors(error.error) ?? this.i18n.t('login.registerFailed');
     }
     if (error.status === 400 || error.status === 401) {
-      return 'Credenciais inválidas. Verifique usuário e senha.';
+      return this.i18n.t('login.invalidCredentials');
     }
-    return 'Não foi possível concluir. Tente novamente em instantes.';
+    return this.i18n.t('login.genericError');
   }
 
   /** Achata os erros de validação por campo do DRF (`{campo: [mensagens]}`). */
