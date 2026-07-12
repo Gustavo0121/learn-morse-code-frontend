@@ -163,7 +163,8 @@ describe('Practice', () => {
 
     expect(await screen.findByText('Correto')).toBeVisible();
 
-    fireEvent.click(screen.getByRole('button', { name: /next/i }));
+    // Enter na tela de resultado aciona o Next.
+    fireEvent(window, new KeyboardEvent('keydown', { key: 'Enter', cancelable: true }));
     expect(await screen.findByText(/qual é o código\?/i)).toBeVisible();
   });
 
@@ -321,6 +322,12 @@ describe('Practice', () => {
     expect(screen.getByText('Time · 15s')).toBeVisible();
     expect(screen.getByText('00:15')).toBeVisible();
     expect(screen.getByText('40.0 cpm')).toBeVisible();
+
+    // Enter no resumo aciona o Restart.
+    fireEvent(window, new KeyboardEvent('keydown', { key: 'Enter', cancelable: true }));
+    detectChanges();
+    expect(screen.getByText(/qual é o código\?/i)).toBeVisible();
+    expect(screen.getByText(/tempo: 00:15/i)).toBeVisible();
   });
 
   it('exibe a seleção de modos com os quatro modos do produto', async () => {

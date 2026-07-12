@@ -189,7 +189,9 @@
         </dl>
 
         <div class="mt-2 flex items-center gap-6">
-          <button app-button type="button" (click)="restartSession()">Restart</button>
+          <button app-button type="button" title="Enter" (click)="restartSession()">
+            Restart <span class="ml-2" aria-hidden="true">↵</span>
+          </button>
           <button app-button variant="outline" type="button" (click)="changeMode()">
             Change mode
           </button>
@@ -214,7 +216,9 @@
           Tempo de resposta: {{ (result.response_time / 1000).toFixed(1) }}s
         </p>
         <div class="mt-4 flex items-center gap-6">
-          <button app-button type="button" (click)="startRound()">Next</button>
+          <button app-button type="button" title="Enter" (click)="startRound()">
+            Next <span class="ml-2" aria-hidden="true">↵</span>
+          </button>
         </div>
       </section>
     } @else if (round(); as round) {

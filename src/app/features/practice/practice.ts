@@ -81,7 +81,10 @@ const CLOCK_TICK_MS = 500;
   selector: 'app-practice',
   imports: [Button, Divider, Heading],
   templateUrl: './practice.html',
-  host: { class: 'flex flex-1 flex-col' },
+  host: {
+    class: 'flex flex-1 flex-col',
+    '(window:keydown.enter)': 'advanceOnEnter($event)',
+  },
 })
 export class Practice {
   readonly #charactersService = inject(MorseCharactersService);
@@ -273,6 +276,19 @@ export class Practice {
 
     if (mode === 'key_capture') {
       this.#input.startCapture();
+    }
+  }
+
+  /** Enter aciona o Next na tela de resultado e o Restart no resumo da sessão. */
+  protected advanceOnEnter(event: Event): void {
+    if (this.finished()) {
+      event.preventDefault();
+      this.restartSession();
+      return;
+    }
+    if (this.result() && !this.submitting()) {
+      event.preventDefault();
+      this.startRound();
     }
   }
 
