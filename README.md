@@ -79,7 +79,9 @@ src/app/
 ## Prática (`/practice`)
 
 - Quatro modos: **Key capture** (vê o caractere e transmite o código com a tecla configurada), **Texto → Morse** e **Morse → Texto** (múltipla escolha) e **Listening** (ouve o código e identifica o caractere).
-- Tela de treino em layout de foco: modo, tempo (`mm:ss`) e precisão da sessão no topo; caractere/código em destaque no centro.
+- **Barras de configuração da sessão** (estilo monkeytype), visíveis após escolher o modo: conteúdo (**Punctuation**/**Numbers** — letras sempre entram no sorteio), tipo de sessão (**Time**/**Characters**) e valores (15/30/60/120 s ou 10/25/50/100 caracteres). Mudar qualquer opção reinicia a sessão.
+- Fim de sessão (tempo esgotado ou meta de caracteres atingida) mostra um painel de resultados — precisão em destaque, tipo do teste, configuração da sessão, velocidade (cpm, mesma fórmula do agregado do backend: caracteres ÷ soma dos tempos de resposta), acertos/total e tempo — com **Restart** e **Change mode**.
+- Tela de treino em layout de foco: modo, progresso (`N/meta` na sessão por caracteres), tempo (`mm:ss`, regressivo na sessão por tempo; o relógio só dispara no primeiro input do usuário) e precisão no topo; caractere/código em destaque no centro.
 - No key_capture, os símbolos aparecem conforme a captura (`.-`); uma pausa (gap de palavra, mínimo 600 ms) encerra o caractere e envia automaticamente. Pressionamentos fora da faixa aceita pelo backend são descartados com aviso — nunca entram no envio.
 - Envio para `POST /api/practice/history` com os campos exatos do contrato: key_capture manda `press_durations` + `input_method` (o backend reclassifica e deriva `user_answer`); os demais mandam `user_answer`; `correct` nunca é enviado. Erro de rede oferece retry com o mesmo payload.
 - Feedback de acerto/erro com resposta esperada, resposta dada e tempo de reação.

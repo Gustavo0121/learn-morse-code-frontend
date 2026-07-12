@@ -5,7 +5,9 @@ import { AuthService } from '../../core/auth/auth.service';
 
 /**
  * Header persistente da aplicação (estilo monkeytype): marca LMC à esquerda,
- * navegação compacta à direita, presente em todas as telas.
+ * navegação compacta à direita, presente em todas as telas. As seções usam
+ * ícones (SVG inline, traço monocromático) com nome acessível em
+ * `aria-label`/`title` — sem dependência de fonte de ícones externa.
  */
 @Component({
   selector: 'app-header',
@@ -21,32 +23,125 @@ import { AuthService } from '../../core/auth/auth.service';
         </span>
       </a>
 
-      <nav
-        class="flex items-center gap-8 font-display text-xs font-bold uppercase tracking-wide-caps"
-        aria-label="Principal"
-      >
+      <nav class="flex items-center gap-7" aria-label="Principal">
         @if (authenticated()) {
-          <a class="text-ink-muted transition-colors hover:text-ink" routerLink="/dashboard">
-            Dashboard
+          <a
+            class="text-ink-muted transition-colors hover:text-ink"
+            routerLink="/dashboard"
+            aria-label="Dashboard"
+            title="Dashboard"
+          >
+            <svg
+              class="h-5 w-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <line x1="6" y1="20" x2="6" y2="16" />
+              <line x1="12" y1="20" x2="12" y2="10" />
+              <line x1="18" y1="20" x2="18" y2="4" />
+            </svg>
           </a>
-          <a class="text-ink-muted transition-colors hover:text-ink" routerLink="/lessons">
-            Lessons
+          <a
+            class="text-ink-muted transition-colors hover:text-ink"
+            routerLink="/lessons"
+            aria-label="Lessons"
+            title="Lessons"
+          >
+            <svg
+              class="h-5 w-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+            </svg>
           </a>
-          <a class="text-ink-muted transition-colors hover:text-ink" routerLink="/practice">
-            Practice
+          <a
+            class="text-ink-muted transition-colors hover:text-ink"
+            routerLink="/practice"
+            aria-label="Practice"
+            title="Practice"
+          >
+            <svg
+              class="h-5 w-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <rect x="2" y="4" width="20" height="16" rx="2" />
+              <path
+                d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M7 16h10"
+              />
+            </svg>
           </a>
-          <a class="text-ink-muted transition-colors hover:text-ink" routerLink="/settings">
-            Settings
+          <a
+            class="text-ink-muted transition-colors hover:text-ink"
+            routerLink="/settings"
+            aria-label="Settings"
+            title="Settings"
+          >
+            <svg
+              class="h-5 w-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <line x1="21" y1="4" x2="14" y2="4" />
+              <line x1="10" y1="4" x2="3" y2="4" />
+              <line x1="21" y1="12" x2="12" y2="12" />
+              <line x1="8" y1="12" x2="3" y2="12" />
+              <line x1="21" y1="20" x2="16" y2="20" />
+              <line x1="12" y1="20" x2="3" y2="20" />
+              <line x1="14" y1="2" x2="14" y2="6" />
+              <line x1="8" y1="10" x2="8" y2="14" />
+              <line x1="16" y1="18" x2="16" y2="22" />
+            </svg>
           </a>
           <button
-            class="cursor-pointer text-ink-muted uppercase transition-colors hover:text-ink"
+            class="cursor-pointer text-ink-muted transition-colors hover:text-ink"
             type="button"
+            aria-label="Sign out"
+            title="Sign out"
             (click)="logout()"
           >
-            Sign out
+            <svg
+              class="h-5 w-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
           </button>
         } @else {
-          <a class="text-ink-muted transition-colors hover:text-ink" routerLink="/login">
+          <a
+            class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted transition-colors hover:text-ink"
+            routerLink="/login"
+          >
             Sign in
           </a>
         }

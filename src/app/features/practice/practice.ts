@@ -12,6 +12,9 @@ import { Heading } from '../../shared/ui/heading/heading';
 
 export type PracticeMode = 'key_capture' | 'text_to_morse' | 'morse_to_text' | 'listening';
 
+/** Meta da sessão: duração fixa ou quantidade de caracteres respondidos. */
+export type SessionKind = 'time' | 'characters';
+
 interface ModeInfo {
   id: PracticeMode;
   title: string;
@@ -41,6 +44,15 @@ const MODES: readonly ModeInfo[] = [
   },
 ];
 
+/** Valores selecionáveis na terceira barra, por tipo de sessão. */
+const SESSION_VALUES: Record<SessionKind, readonly number[]> = {
+  time: [15, 30, 60, 120],
+  characters: [10, 15, 20, 25],
+};
+
+const DEFAULT_TIME_GOAL_S = 60;
+const DEFAULT_CHARACTER_GOAL = 10;
+
 interface Round {
   character: MorseCharacter;
   /** Valor exibido/enviado como `question`. */
@@ -69,7 +81,10 @@ const CLOCK_TICK_MS = 500;
   selector: 'app-practice',
   imports: [Button, Divider, Heading],
   templateUrl: './practice.html',
-  host: { class: 'flex flex-1 flex-col' },
+  host: {
+    class: 'flex flex-1 flex-col',
+    '(window:keydown.enter)': 'advanceOnEnter($event)',
+  },
 })
 export class Practice {
   readonly #charactersService = inject(MorseCharactersService);
@@ -87,6 +102,34 @@ export class Practice {
   protected readonly mode = signal<PracticeMode | null>(null);
   protected readonly round = signal<Round | null>(null);
 
+  // Configuração da sessão (barras flutuantes, estilo monkeytype). Letras
+  // sempre entram; pontuação e números são opcionais.
+  protected readonly includePunctuation = signal(false);
+  protected readonly includeNumbers = signal(false);
+  protected readonly sessionKind = signal<SessionKind>('characters');
+  readonly #timeGoalS = signal(DEFAULT_TIME_GOAL_S);
+  readonly #characterGoal = signal(DEFAULT_CHARACTER_GOAL);
+
+  protected readonly sessionValues = computed(() => SESSION_VALUES[this.sessionKind()]);
+  protected readonly sessionGoal = computed(() =>
+    this.sessionKind() === 'time' ? this.#timeGoalS() : this.#characterGoal(),
+  );
+
+  /** Caracteres sorteáveis conforme os filtros de conteúdo da primeira barra. */
+  protected readonly pool = computed<MorseCharacter[] | null>(() => {
+    const characters = this.characters();
+    if (!characters) {
+      return null;
+    }
+    const filtered = characters.filter(
+      (character) =>
+        character.type === 'letter' ||
+        (character.type === 'number' && this.includeNumbers()) ||
+        (character.type === 'punctuation' && this.includePunctuation()),
+    );
+    return filtered.length > 0 ? filtered : characters;
+  });
+
   /** Símbolos já capturados no round de key_capture (ex.: ".-"). */
   protected readonly symbols = signal('');
   protected readonly invalidPress = signal(false);
@@ -95,13 +138,23 @@ export class Practice {
   protected readonly submitting = signal(false);
   protected readonly submitError = signal(false);
 
+  protected readonly finished = signal(false);
   protected readonly elapsedS = signal(0);
-  readonly #sessionTotal = signal(0);
-  readonly #sessionCorrect = signal(0);
+  protected readonly sessionTotal = signal(0);
+  protected readonly sessionCorrect = signal(0);
+  /** Soma dos tempos de resposta da sessão (ms) — base do cpm, como no backend. */
+  readonly #sessionResponseMs = signal(0);
 
   protected readonly accuracy = computed(() => {
-    const total = this.#sessionTotal();
-    return total === 0 ? null : Math.round((this.#sessionCorrect() / total) * 100);
+    const total = this.sessionTotal();
+    return total === 0 ? null : Math.round((this.sessionCorrect() / total) * 100);
+  });
+
+  /** Caracteres por minuto, com a mesma fórmula do agregado do backend. */
+  protected readonly sessionCpm = computed(() => {
+    const total = this.sessionTotal();
+    const responseMs = this.#sessionResponseMs();
+    return total === 0 || responseMs === 0 ? null : (total * 60_000) / responseMs;
   });
 
   protected readonly modeTitle = computed(
@@ -112,6 +165,7 @@ export class Practice {
   #pendingAttempt: PracticeAttempt | null = null;
   #gapTimer: ReturnType<typeof setTimeout> | null = null;
   #clockTimer: ReturnType<typeof setInterval> | null = null;
+  #sessionStartedAt = 0;
 
   constructor() {
     this.loadCharacters();
@@ -121,6 +175,7 @@ export class Practice {
     this.#destroyRef.onDestroy(() => {
       subscription.unsubscribe();
       this.#teardownRound();
+      this.#stopClock();
     });
   }
 
@@ -135,23 +190,68 @@ export class Practice {
 
   protected selectMode(mode: PracticeMode): void {
     this.mode.set(mode);
-    this.#sessionTotal.set(0);
-    this.#sessionCorrect.set(0);
-    this.startRound();
+    this.restartSession();
   }
 
   protected changeMode(): void {
     this.#teardownRound();
+    this.#stopClock();
     this.mode.set(null);
     this.round.set(null);
     this.result.set(null);
     this.submitError.set(false);
+    this.finished.set(false);
+  }
+
+  // Mudar qualquer configuração reinicia a sessão (como no monkeytype): os
+  // contadores e o relógio voltam do zero com a nova configuração aplicada.
+
+  protected togglePunctuation(): void {
+    this.includePunctuation.update((value) => !value);
+    this.restartSession();
+  }
+
+  protected toggleNumbers(): void {
+    this.includeNumbers.update((value) => !value);
+    this.restartSession();
+  }
+
+  protected setSessionKind(kind: SessionKind): void {
+    if (this.sessionKind() === kind) {
+      return;
+    }
+    this.sessionKind.set(kind);
+    this.restartSession();
+  }
+
+  protected setSessionGoal(value: number): void {
+    if (this.sessionGoal() === value) {
+      return;
+    }
+    if (this.sessionKind() === 'time') {
+      this.#timeGoalS.set(value);
+    } else {
+      this.#characterGoal.set(value);
+    }
+    this.restartSession();
+  }
+
+  protected restartSession(): void {
+    this.finished.set(false);
+    this.result.set(null);
+    this.submitError.set(false);
+    this.sessionTotal.set(0);
+    this.sessionCorrect.set(0);
+    this.#sessionResponseMs.set(0);
+    this.#stopClock();
+    this.elapsedS.set(0);
+    this.startRound();
   }
 
   protected startRound(): void {
     const mode = this.mode();
-    const characters = this.characters();
-    if (!mode || !characters || characters.length === 0) {
+    const pool = this.pool();
+    if (!mode || !pool || pool.length === 0) {
       return;
     }
 
@@ -163,27 +263,32 @@ export class Practice {
     this.symbols.set('');
     this.invalidPress.set(false);
 
-    const character = characters[Math.floor(Math.random() * characters.length)];
+    const character = pool[Math.floor(Math.random() * pool.length)];
     this.round.set({
       character,
       question:
         mode === 'morse_to_text' || mode === 'listening' ? character.code : character.character,
       expected:
         mode === 'text_to_morse' || mode === 'key_capture' ? character.code : character.character,
-      options: this.#buildOptions(mode, character, characters),
+      options: this.#buildOptions(mode, character, pool),
       startedAt: performance.now(),
     });
 
-    this.elapsedS.set(0);
-    this.#clockTimer = setInterval(() => {
-      const round = this.round();
-      if (round) {
-        this.elapsedS.set(Math.floor((performance.now() - round.startedAt) / 1000));
-      }
-    }, CLOCK_TICK_MS);
-
     if (mode === 'key_capture') {
       this.#input.startCapture();
+    }
+  }
+
+  /** Enter aciona o Next na tela de resultado e o Restart no resumo da sessão. */
+  protected advanceOnEnter(event: Event): void {
+    if (this.finished()) {
+      event.preventDefault();
+      this.restartSession();
+      return;
+    }
+    if (this.result() && !this.submitting()) {
+      event.preventDefault();
+      this.startRound();
     }
   }
 
@@ -194,6 +299,7 @@ export class Practice {
     if (!mode || !round || this.result() || this.submitting()) {
       return;
     }
+    this.#startClockOnFirstInput();
     this.#submit({
       exercise_type: mode === 'listening' ? 'listening' : 'multiple_choice',
       question: round.question,
@@ -224,11 +330,67 @@ export class Practice {
     return this.#settings.settings()?.input_key ?? FALLBACK_KEY;
   }
 
+  /** Relógio do topo: regressivo na sessão por tempo, corrido na por caracteres. */
   protected clock(): string {
-    const total = this.elapsedS();
-    const minutes = String(Math.floor(total / 60)).padStart(2, '0');
-    const seconds = String(total % 60).padStart(2, '0');
+    const totalS =
+      this.sessionKind() === 'time'
+        ? Math.max(0, this.#timeGoalS() - this.elapsedS())
+        : this.elapsedS();
+    return this.#formatClock(totalS);
+  }
+
+  /** Tempo decorrido da sessão (exibido no resumo final). */
+  protected elapsedClock(): string {
+    return this.#formatClock(this.elapsedS());
+  }
+
+  protected cpmLabel(): string {
+    const cpm = this.sessionCpm();
+    return cpm === null ? '—' : `${cpm.toFixed(1)} cpm`;
+  }
+
+  /** Configuração da sessão exibida no resumo (ex.: "Characters · 10"). */
+  protected sessionLabel(): string {
+    const goal = this.sessionGoal();
+    return this.sessionKind() === 'time' ? `Time · ${goal}s` : `Characters · ${goal}`;
+  }
+
+  #formatClock(totalS: number): string {
+    const minutes = String(Math.floor(totalS / 60)).padStart(2, '0');
+    const seconds = String(totalS % 60).padStart(2, '0');
     return `${minutes}:${seconds}`;
+  }
+
+  /** O relógio da sessão só começa a contar no primeiro input do usuário. */
+  #startClockOnFirstInput(): void {
+    if (this.#clockTimer !== null) {
+      return;
+    }
+    this.#sessionStartedAt = performance.now();
+    this.#clockTimer = setInterval(() => {
+      const elapsed = Math.floor((performance.now() - this.#sessionStartedAt) / 1000);
+      this.elapsedS.set(elapsed);
+      if (this.sessionKind() === 'time' && elapsed >= this.#timeGoalS()) {
+        this.#finishSession();
+      }
+    }, CLOCK_TICK_MS);
+  }
+
+  #stopClock(): void {
+    if (this.#clockTimer !== null) {
+      clearInterval(this.#clockTimer);
+      this.#clockTimer = null;
+    }
+  }
+
+  #finishSession(): void {
+    this.#teardownRound();
+    this.#stopClock();
+    this.round.set(null);
+    this.result.set(null);
+    this.submitError.set(false);
+    this.#pendingAttempt = null;
+    this.finished.set(true);
   }
 
   #handlePress(press: MorsePressEvent): void {
@@ -236,6 +398,8 @@ export class Practice {
     if (this.mode() !== 'key_capture' || !round || this.result() || this.submitting()) {
       return;
     }
+
+    this.#startClockOnFirstInput();
 
     if (press.symbol === null) {
       // O backend rejeitaria essa duração para o speed_wpm atual: descarta e avisa.
@@ -284,11 +448,21 @@ export class Practice {
       next: (record) => {
         this.submitting.set(false);
         this.#pendingAttempt = null;
-        this.result.set(record);
-        this.#sessionTotal.update((total) => total + 1);
+        this.sessionTotal.update((total) => total + 1);
+        this.#sessionResponseMs.update((ms) => ms + record.response_time);
         if (record.correct) {
-          this.#sessionCorrect.update((correct) => correct + 1);
+          this.sessionCorrect.update((correct) => correct + 1);
         }
+        // A sessão por tempo pode ter expirado com este envio em voo: a
+        // tentativa conta, mas o resumo permanece na tela.
+        if (this.finished()) {
+          return;
+        }
+        if (this.sessionKind() === 'characters' && this.sessionTotal() >= this.#characterGoal()) {
+          this.#finishSession();
+          return;
+        }
+        this.result.set(record);
       },
       error: () => {
         this.submitting.set(false);
@@ -334,10 +508,6 @@ export class Practice {
     if (this.#gapTimer !== null) {
       clearTimeout(this.#gapTimer);
       this.#gapTimer = null;
-    }
-    if (this.#clockTimer !== null) {
-      clearInterval(this.#clockTimer);
-      this.#clockTimer = null;
     }
   }
 }
