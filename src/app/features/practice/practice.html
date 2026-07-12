@@ -1,0 +1,302 @@
+<main class="flex flex-1 flex-col py-12">
+  @if (charactersError()) {
+    <app-heading text="Practice" />
+    <p class="mt-8 text-sm text-error" role="alert">
+      {{ i18n.t('practice.charactersError') }}
+    </p>
+    <div class="mt-6">
+      <button app-button variant="outline" type="button" (click)="loadCharacters()">
+        Try again
+      </button>
+    </div>
+  } @else if (!characters()) {
+    <app-heading text="Practice" />
+    <p class="mt-8 text-sm text-ink-muted">{{ i18n.t('practice.loading') }}</p>
+  } @else if (!mode()) {
+    <app-heading text="Practice" />
+    <app-divider class="mt-10 mb-8" label="Modes" />
+    <div class="grid gap-4 md:grid-cols-2">
+      @for (info of modes; track info.id) {
+        <button
+          class="group cursor-pointer border border-line px-6 py-6 text-left transition-colors hover:border-ink"
+          type="button"
+          (click)="selectMode(info.id)"
+        >
+          <span class="block font-display text-lg font-extrabold uppercase tracking-tight text-ink">
+            {{ i18n.t(info.title) }}
+          </span>
+          <span class="mt-2 block text-sm text-ink-muted">{{ i18n.t(info.description) }}</span>
+        </button>
+      }
+    </div>
+  } @else {
+    <div
+      class="mb-8 flex flex-wrap items-center justify-center gap-15 font-display text-xs font-bold uppercase tracking-wide-caps"
+      role="group"
+      aria-label="Configuração da sessão"
+    >
+      <div class="flex items-center rounded-lg border border-line px-2 py-1">
+        <button
+          class="cursor-pointer rounded-md px-3 py-1.5 uppercase transition-colors"
+          [class.bg-ink]="includePunctuation()"
+          [class.text-canvas]="includePunctuation()"
+          [class.text-ink-muted]="!includePunctuation()"
+          [class.hover:text-ink]="!includePunctuation()"
+          type="button"
+          [attr.aria-pressed]="includePunctuation()"
+          (click)="togglePunctuation()"
+        >
+          Punctuation
+        </button>
+        <button
+          class="cursor-pointer rounded-md px-3 py-1.5 uppercase transition-colors"
+          [class.bg-ink]="includeNumbers()"
+          [class.text-canvas]="includeNumbers()"
+          [class.text-ink-muted]="!includeNumbers()"
+          [class.hover:text-ink]="!includeNumbers()"
+          type="button"
+          [attr.aria-pressed]="includeNumbers()"
+          (click)="toggleNumbers()"
+        >
+          Numbers
+        </button>
+      </div>
+
+      <div class="flex items-center rounded-lg border border-line px-2 py-1">
+        <button
+          class="cursor-pointer rounded-md px-3 py-1.5 uppercase transition-colors"
+          [class.bg-ink]="sessionKind() === 'time'"
+          [class.text-canvas]="sessionKind() === 'time'"
+          [class.text-ink-muted]="sessionKind() !== 'time'"
+          [class.hover:text-ink]="sessionKind() !== 'time'"
+          type="button"
+          [attr.aria-pressed]="sessionKind() === 'time'"
+          (click)="setSessionKind('time')"
+        >
+          Time
+        </button>
+        <button
+          class="cursor-pointer rounded-md px-3 py-1.5 uppercase transition-colors"
+          [class.bg-ink]="sessionKind() === 'characters'"
+          [class.text-canvas]="sessionKind() === 'characters'"
+          [class.text-ink-muted]="sessionKind() !== 'characters'"
+          [class.hover:text-ink]="sessionKind() !== 'characters'"
+          type="button"
+          [attr.aria-pressed]="sessionKind() === 'characters'"
+          (click)="setSessionKind('characters')"
+        >
+          Characters
+        </button>
+      </div>
+
+      <div class="flex items-center rounded-lg border border-line px-2 py-1">
+        @for (value of sessionValues(); track value) {
+          <button
+            class="cursor-pointer rounded-md px-3 py-1.5 transition-colors"
+            [class.bg-ink]="sessionGoal() === value"
+            [class.text-canvas]="sessionGoal() === value"
+            [class.text-ink-muted]="sessionGoal() !== value"
+            [class.hover:text-ink]="sessionGoal() !== value"
+            type="button"
+            [attr.aria-pressed]="sessionGoal() === value"
+            (click)="setSessionGoal(value)"
+          >
+            {{ value }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <div
+      class="flex flex-wrap items-center justify-between gap-4 font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted"
+    >
+      <span>{{ modeTitle() }}</span>
+      <span class="flex items-center gap-8">
+        @if (sessionKind() === 'characters') {
+          <span>{{ sessionTotal() }}/{{ sessionGoal() }}</span>
+        }
+        <span>{{ i18n.t('common.time') }}: {{ clock() }}</span>
+        <span
+          >{{ i18n.t('common.accuracy') }}: {{ accuracy() !== null ? accuracy() + '%' : '—' }}</span
+        >
+        <button
+          class="cursor-pointer uppercase text-ink-muted transition-colors hover:text-ink"
+          type="button"
+          (click)="changeMode()"
+        >
+          Change mode
+        </button>
+      </span>
+    </div>
+
+    <app-divider class="mt-4 mb-8" />
+
+    @if (finished()) {
+      <section class="flex flex-1 flex-col items-center justify-center gap-10 text-center">
+        <div>
+          <p class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
+            {{ i18n.t('practice.sessionDone') }}
+          </p>
+          <p class="mt-4 font-display text-7xl font-extrabold tracking-tight text-ink">
+            {{ accuracy() !== null ? accuracy() + '%' : '—' }}
+          </p>
+          <p
+            class="mt-2 font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted"
+          >
+            {{ i18n.t('common.accuracy') }}
+          </p>
+        </div>
+
+        <dl class="grid grid-cols-2 gap-x-12 gap-y-8 md:grid-cols-5">
+          <div>
+            <dt class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
+              {{ i18n.t('practice.test') }}
+            </dt>
+            <dd class="mt-2 font-display text-xl font-extrabold tracking-tight text-ink">
+              {{ modeTitle() }}
+            </dd>
+          </div>
+          <div>
+            <dt class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
+              {{ i18n.t('practice.session') }}
+            </dt>
+            <dd class="mt-2 font-display text-xl font-extrabold tracking-tight text-ink">
+              {{ sessionLabel() }}
+            </dd>
+          </div>
+          <div>
+            <dt class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
+              {{ i18n.t('practice.speed') }}
+            </dt>
+            <dd class="mt-2 font-display text-xl font-extrabold tracking-tight text-ink">
+              {{ cpmLabel() }}
+            </dd>
+          </div>
+          <div>
+            <dt class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
+              {{ i18n.t('dashboard.statCorrect') }}
+            </dt>
+            <dd class="mt-2 font-display text-xl font-extrabold tracking-tight text-ink">
+              {{ sessionCorrect() }}/{{ sessionTotal() }}
+            </dd>
+          </div>
+          <div>
+            <dt class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
+              {{ i18n.t('common.time') }}
+            </dt>
+            <dd class="mt-2 font-display text-xl font-extrabold tracking-tight text-ink">
+              {{ elapsedClock() }}
+            </dd>
+          </div>
+        </dl>
+
+        <div class="mt-2 flex items-center gap-6">
+          <button app-button type="button" title="Enter" (click)="restartSession()">
+            Restart <span class="ml-2" aria-hidden="true">↵</span>
+          </button>
+          <button app-button variant="outline" type="button" (click)="changeMode()">
+            Change mode
+          </button>
+        </div>
+      </section>
+    } @else if (result(); as result) {
+      <section class="flex flex-1 flex-col items-center justify-center gap-6 text-center">
+        @if (result.correct) {
+          <p class="font-display text-4xl font-extrabold uppercase tracking-tight text-ink">
+            {{ i18n.t('common.correct') }}
+          </p>
+        } @else {
+          <p class="font-display text-4xl font-extrabold uppercase tracking-tight text-error">
+            {{ i18n.t('common.wrong') }}
+          </p>
+        }
+        <p class="text-sm text-ink-muted">
+          {{ i18n.t('common.expected') }}
+          <span class="text-ink">{{ result.expected_answer }}</span> ·
+          {{ i18n.t('common.yourAnswer') }}
+          <span class="text-ink">{{ result.user_answer }}</span>
+        </p>
+        <p class="text-sm text-ink-muted">
+          {{ i18n.t('practice.responseTime') }} {{ (result.response_time / 1000).toFixed(1) }}s
+        </p>
+        <div class="mt-4 flex items-center gap-6">
+          <button app-button type="button" title="Enter" (click)="startRound()">
+            Next <span class="ml-2" aria-hidden="true">↵</span>
+          </button>
+        </div>
+      </section>
+    } @else if (round(); as round) {
+      <section class="flex flex-1 flex-col items-center justify-center gap-8 text-center">
+        @switch (mode()) {
+          @case ('key_capture') {
+            <p class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
+              {{ i18n.t('practice.currentCode') }}
+            </p>
+            <p class="font-display text-7xl font-extrabold uppercase text-ink">
+              {{ round.question }}
+            </p>
+            <p class="min-h-8 font-display text-3xl font-extrabold tracking-widest text-ink">
+              {{ symbols() || ' ' }}
+            </p>
+            @if (invalidPress()) {
+              <p class="text-sm text-error" role="alert">
+                {{ i18n.t('common.invalidPress', { key: inputKeyLabel() }) }}
+              </p>
+            }
+            <p class="text-sm text-ink-muted">
+              {{ i18n.t('common.pressHint', { key: inputKeyLabel() }) }}
+            </p>
+          }
+          @case ('text_to_morse') {
+            <p class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
+              {{ i18n.t('practice.whichCode') }}
+            </p>
+            <p class="font-display text-7xl font-extrabold uppercase text-ink">
+              {{ round.question }}
+            </p>
+          }
+          @case ('morse_to_text') {
+            <p class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
+              {{ i18n.t('practice.whichCharacter') }}
+            </p>
+            <p class="font-display text-6xl font-extrabold tracking-widest text-ink">
+              {{ round.question }}
+            </p>
+          }
+          @case ('listening') {
+            <p class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
+              {{ i18n.t('practice.listenIdentify') }}
+            </p>
+            <button app-button variant="outline" type="button" (click)="playCode()">
+              Play code
+            </button>
+          }
+        }
+
+        @if (round.options; as options) {
+          <div class="flex flex-wrap items-center justify-center gap-3">
+            @for (option of options; track option) {
+              <button
+                class="min-w-20 cursor-pointer border border-line px-6 py-4 font-display text-xl font-extrabold text-ink transition-colors hover:border-ink"
+                type="button"
+                [disabled]="submitting()"
+                (click)="answer(option)"
+              >
+                {{ option }}
+              </button>
+            }
+          </div>
+        }
+
+        @if (submitError()) {
+          <p class="text-sm text-error" role="alert">{{ i18n.t('common.submitError') }}</p>
+          <button app-button variant="outline" type="button" (click)="retrySubmit()">
+            Try again
+          </button>
+        } @else if (submitting()) {
+          <p class="text-sm text-ink-muted">{{ i18n.t('common.submitting') }}</p>
+        }
+      </section>
+    }
+  }
+</main>

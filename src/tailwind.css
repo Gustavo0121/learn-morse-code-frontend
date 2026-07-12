@@ -1,0 +1,27 @@
+@import 'tailwindcss';
+
+/*
+ * Design tokens — Learn Morse Code
+ * Estética: minimalista premium + brutalismo digital + editorial.
+ *
+ * Contraste validado (WCAG 2.1) sobre canvas #050505 / surface #0A0A0A:
+ *   ink        #FFFFFF  20.38:1 / 19.80:1  (AAA)
+ *   ink-muted  #A0A0A0   7.79:1 /  7.57:1  (AAA texto normal)
+ *   error      #F87171   7.37:1 /  7.16:1  (AAA texto normal)
+ *   botão sólido: #000000 sobre #FFFFFF 21:1 (AAA)
+ * `line` (#262626) é decorativo (divisórias/bordas), não usado para texto.
+ */
+@theme {
+  --color-canvas: #050505;
+  --color-surface: #0a0a0a;
+  --color-ink: #ffffff;
+  --color-ink-muted: #a0a0a0;
+  --color-line: #262626;
+  --color-accent: #e5e5e5;
+  --color-error: #f87171;
+
+  --font-sans: 'Inter', 'Helvetica Neue', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Manrope', 'Inter', 'Helvetica Neue', ui-sans-serif, system-ui, sans-serif;
+
+  --tracking-wide-caps: 0.2em;
+}
