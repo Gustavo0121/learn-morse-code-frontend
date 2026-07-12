@@ -125,15 +125,19 @@ describe('Settings', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Tecla não permitida.');
   });
 
-  it('Test sound toca um tom com o rascunho atual', async () => {
+  it('Test sound toca uma sequência Morse com o rascunho atual', async () => {
     const { user } = await setup();
-    const playTone = vi
-      .spyOn(TestBed.inject(MorseAudioService), 'playTone')
+    const playSequence = vi
+      .spyOn(TestBed.inject(MorseAudioService), 'playSequence')
       .mockResolvedValue(undefined);
 
     await user.click(await screen.findByRole('button', { name: /grave · 400 hz/i }));
+    await user.click(screen.getByRole('button', { name: '40' }));
     await user.click(screen.getByRole('button', { name: 'Test sound' }));
 
-    expect(playTone).toHaveBeenCalledWith(expect.objectContaining({ frequency: 400 }));
+    expect(playSequence).toHaveBeenCalledWith(
+      '.-.. -- -.-.',
+      expect.objectContaining({ frequency: 400, speed_wpm: 40 }),
+    );
   });
 });

@@ -56,7 +56,13 @@ src/app/
 - Tela `/settings` (autenticada) com blocos **Audio** (velocidade `5–60 WPM`, frequência Grave/Médio/Agudo = `400/700/1000 Hz`, volume `0–1`, tipo de onda) e **Input** (tecla de captura).
 - As opções espelham exatamente os choices/validators do backend; a tecla de captura é restrita à whitelist retornada por `GET /api/morse-settings/allowed-keys` (mesma lista que o servidor valida — nada de blacklist local).
 - Alterações passam por **confirmação visual** antes do `PUT /api/users/morse-settings`; nomes de campo seguem o contrato (`speed_wpm`, nunca `speed`).
-- **Test sound** gera o tom via Web Audio API (`MorseAudioService`); o `AudioContext` é criado apenas nesse primeiro gesto do usuário, nunca no carregamento da página.
+- **Test sound** toca "LMC" em Morse com as configurações do rascunho — demonstra timbre e velocidade antes de salvar.
+
+## Áudio Morse (`MorseAudioService`)
+
+- Som gerado 100% no navegador via Web Audio API — nenhum arquivo de áudio vem do backend.
+- `playSequence(code, settings)` reproduz sequências (`'.'`/`'-'`, espaço entre letras, `/` entre palavras) com timing derivado de `speed_wpm` pelo padrão PARIS (ponto = `1200/wpm` ms; traço 3 unidades; pausas 1/3/7). A fórmula vive em `services/morse-timing.ts` e será a mesma usada pela classificação de captura (Fase 4), mantendo consistência com a validação do backend.
+- O `AudioContext` é criado de forma lazy no primeiro gesto do usuário (nunca no carregamento da página); tons agendados na timeline do contexto com rampa de ganho anti-click; `stop()`/nova reprodução interrompem a anterior com segurança, e o estado é exposto no signal `playing`.
 
 ## Design system
 
