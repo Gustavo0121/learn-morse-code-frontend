@@ -100,6 +100,12 @@ src/app/
 - Bloco **Recent training** com os últimos 8 registros de `GET /api/practice/history` (já ordenado do mais recente): acerto/erro, questão → resposta, modo, tempo de reação e data. Estado vazio traz chamada para `/practice`.
 - Cada bloco tem carregamento, erro e retry independentes — a falha de um não derruba o outro.
 
+## Idiomas (i18n)
+
+- Seletor **PT / EN** no header, persistido em `localStorage` (`lmc.locale`; preferência de idioma, não é dado sensível). Padrão: `pt`.
+- Tradução em runtime via `I18nService` (`core/i18n/`): `t(chave, params?)` lê o signal `locale`, então bindings e computeds que o chamam reagem à troca de idioma sem reload.
+- Dicionário tipado em `core/i18n/messages.ts` (`MessageKey` é união literal — chave inexistente não compila). O locale `pt` corresponde à UI original; rótulos editoriais em inglês do design (headings, "Sign in", "Next", barras da prática) são iguais nos dois idiomas e ficam fora do dicionário.
+
 ## Design system
 
 Identidade minimalista premium (fundo `#050505`, texto `#FFFFFF`/`#A0A0A0`, fontes Inter/Manrope). Os design tokens ficam em `src/tailwind.css` (`@theme`), com contraste validado WCAG AA/AAA; o tema do Angular Material é alinhado a eles em `src/styles.scss`.

@@ -2,7 +2,7 @@
   @if (charactersError()) {
     <app-heading text="Practice" />
     <p class="mt-8 text-sm text-error" role="alert">
-      Não foi possível carregar os caracteres Morse.
+      {{ i18n.t('practice.charactersError') }}
     </p>
     <div class="mt-6">
       <button app-button variant="outline" type="button" (click)="loadCharacters()">
@@ -11,7 +11,7 @@
     </div>
   } @else if (!characters()) {
     <app-heading text="Practice" />
-    <p class="mt-8 text-sm text-ink-muted">Carregando…</p>
+    <p class="mt-8 text-sm text-ink-muted">{{ i18n.t('practice.loading') }}</p>
   } @else if (!mode()) {
     <app-heading text="Practice" />
     <app-divider class="mt-10 mb-8" label="Modes" />
@@ -23,9 +23,9 @@
           (click)="selectMode(info.id)"
         >
           <span class="block font-display text-lg font-extrabold uppercase tracking-tight text-ink">
-            {{ info.title }}
+            {{ i18n.t(info.title) }}
           </span>
-          <span class="mt-2 block text-sm text-ink-muted">{{ info.description }}</span>
+          <span class="mt-2 block text-sm text-ink-muted">{{ i18n.t(info.description) }}</span>
         </button>
       }
     </div>
@@ -115,8 +115,10 @@
         @if (sessionKind() === 'characters') {
           <span>{{ sessionTotal() }}/{{ sessionGoal() }}</span>
         }
-        <span>Tempo: {{ clock() }}</span>
-        <span>Precisão: {{ accuracy() !== null ? accuracy() + '%' : '—' }}</span>
+        <span>{{ i18n.t('common.time') }}: {{ clock() }}</span>
+        <span
+          >{{ i18n.t('common.accuracy') }}: {{ accuracy() !== null ? accuracy() + '%' : '—' }}</span
+        >
         <button
           class="cursor-pointer uppercase text-ink-muted transition-colors hover:text-ink"
           type="button"
@@ -133,7 +135,7 @@
       <section class="flex flex-1 flex-col items-center justify-center gap-10 text-center">
         <div>
           <p class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
-            Sessão concluída
+            {{ i18n.t('practice.sessionDone') }}
           </p>
           <p class="mt-4 font-display text-7xl font-extrabold tracking-tight text-ink">
             {{ accuracy() !== null ? accuracy() + '%' : '—' }}
@@ -141,14 +143,14 @@
           <p
             class="mt-2 font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted"
           >
-            Precisão
+            {{ i18n.t('common.accuracy') }}
           </p>
         </div>
 
         <dl class="grid grid-cols-2 gap-x-12 gap-y-8 md:grid-cols-5">
           <div>
             <dt class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
-              Teste
+              {{ i18n.t('practice.test') }}
             </dt>
             <dd class="mt-2 font-display text-xl font-extrabold tracking-tight text-ink">
               {{ modeTitle() }}
@@ -156,7 +158,7 @@
           </div>
           <div>
             <dt class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
-              Sessão
+              {{ i18n.t('practice.session') }}
             </dt>
             <dd class="mt-2 font-display text-xl font-extrabold tracking-tight text-ink">
               {{ sessionLabel() }}
@@ -164,7 +166,7 @@
           </div>
           <div>
             <dt class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
-              Velocidade
+              {{ i18n.t('practice.speed') }}
             </dt>
             <dd class="mt-2 font-display text-xl font-extrabold tracking-tight text-ink">
               {{ cpmLabel() }}
@@ -172,7 +174,7 @@
           </div>
           <div>
             <dt class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
-              Acertos
+              {{ i18n.t('dashboard.statCorrect') }}
             </dt>
             <dd class="mt-2 font-display text-xl font-extrabold tracking-tight text-ink">
               {{ sessionCorrect() }}/{{ sessionTotal() }}
@@ -180,7 +182,7 @@
           </div>
           <div>
             <dt class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
-              Tempo
+              {{ i18n.t('common.time') }}
             </dt>
             <dd class="mt-2 font-display text-xl font-extrabold tracking-tight text-ink">
               {{ elapsedClock() }}
@@ -201,19 +203,21 @@
       <section class="flex flex-1 flex-col items-center justify-center gap-6 text-center">
         @if (result.correct) {
           <p class="font-display text-4xl font-extrabold uppercase tracking-tight text-ink">
-            Correto
+            {{ i18n.t('common.correct') }}
           </p>
         } @else {
           <p class="font-display text-4xl font-extrabold uppercase tracking-tight text-error">
-            Errado
+            {{ i18n.t('common.wrong') }}
           </p>
         }
         <p class="text-sm text-ink-muted">
-          Esperado: <span class="text-ink">{{ result.expected_answer }}</span> · Sua resposta:
+          {{ i18n.t('common.expected') }}
+          <span class="text-ink">{{ result.expected_answer }}</span> ·
+          {{ i18n.t('common.yourAnswer') }}
           <span class="text-ink">{{ result.user_answer }}</span>
         </p>
         <p class="text-sm text-ink-muted">
-          Tempo de resposta: {{ (result.response_time / 1000).toFixed(1) }}s
+          {{ i18n.t('practice.responseTime') }} {{ (result.response_time / 1000).toFixed(1) }}s
         </p>
         <div class="mt-4 flex items-center gap-6">
           <button app-button type="button" title="Enter" (click)="startRound()">
@@ -226,7 +230,7 @@
         @switch (mode()) {
           @case ('key_capture') {
             <p class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
-              Código atual
+              {{ i18n.t('practice.currentCode') }}
             </p>
             <p class="font-display text-7xl font-extrabold uppercase text-ink">
               {{ round.question }}
@@ -236,16 +240,16 @@
             </p>
             @if (invalidPress()) {
               <p class="text-sm text-error" role="alert">
-                Pressionamento longo demais para {{ inputKeyLabel() }} — ignorado.
+                {{ i18n.t('common.invalidPress', { key: inputKeyLabel() }) }}
               </p>
             }
             <p class="text-sm text-ink-muted">
-              Pressione {{ inputKeyLabel() }} — solte para encerrar o caractere.
+              {{ i18n.t('common.pressHint', { key: inputKeyLabel() }) }}
             </p>
           }
           @case ('text_to_morse') {
             <p class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
-              Qual é o código?
+              {{ i18n.t('practice.whichCode') }}
             </p>
             <p class="font-display text-7xl font-extrabold uppercase text-ink">
               {{ round.question }}
@@ -253,7 +257,7 @@
           }
           @case ('morse_to_text') {
             <p class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
-              Qual é o caractere?
+              {{ i18n.t('practice.whichCharacter') }}
             </p>
             <p class="font-display text-6xl font-extrabold tracking-widest text-ink">
               {{ round.question }}
@@ -261,7 +265,7 @@
           }
           @case ('listening') {
             <p class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
-              Ouça e identifique o caractere
+              {{ i18n.t('practice.listenIdentify') }}
             </p>
             <button app-button variant="outline" type="button" (click)="playCode()">
               Play code
@@ -285,12 +289,12 @@
         }
 
         @if (submitError()) {
-          <p class="text-sm text-error" role="alert">Não foi possível registrar a tentativa.</p>
+          <p class="text-sm text-error" role="alert">{{ i18n.t('common.submitError') }}</p>
           <button app-button variant="outline" type="button" (click)="retrySubmit()">
             Try again
           </button>
         } @else if (submitting()) {
-          <p class="text-sm text-ink-muted">Registrando…</p>
+          <p class="text-sm text-ink-muted">{{ i18n.t('common.submitting') }}</p>
         }
       </section>
     }

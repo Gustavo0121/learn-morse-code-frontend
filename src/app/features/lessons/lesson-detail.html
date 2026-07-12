@@ -1,6 +1,6 @@
 <main class="flex flex-1 flex-col py-12">
   @if (error()) {
-    <p class="text-sm text-error" role="alert">Não foi possível carregar a lição.</p>
+    <p class="text-sm text-error" role="alert">{{ i18n.t('common.lessonError') }}</p>
     <div class="mt-6">
       <button app-button variant="outline" type="button" (click)="load(id())">Try again</button>
     </div>
@@ -13,17 +13,19 @@
       </p>
     }
     <p class="mt-4 font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
-      Nível {{ lesson.difficulty }}
+      {{ i18n.t('common.level', { level: lesson.difficulty }) }}
     </p>
 
     @if (lesson.characters.length > 0) {
       <div class="mt-8">
-        <a app-button size="lg" [routerLink]="['/lessons', lesson.id, 'train']">Iniciar</a>
+        <a app-button size="lg" [routerLink]="['/lessons', lesson.id, 'train']">
+          {{ i18n.t('lessonDetail.start') }}
+        </a>
       </div>
 
       <app-divider class="mt-12 mb-2" label="Lesson content" />
 
-      <p class="mt-4 text-xs text-ink-muted">Clique em um caractere para ouvir o código.</p>
+      <p class="mt-4 text-xs text-ink-muted">{{ i18n.t('common.clickToListen') }}</p>
       <div class="mt-6 flex flex-wrap gap-2">
         @for (character of lesson.characters; track character.id) {
           <button
@@ -45,7 +47,7 @@
 
     @if (charactersError()) {
       <p class="mt-6 text-sm text-error" role="alert">
-        Não foi possível carregar o alfabeto Morse.
+        {{ i18n.t('lessonDetail.alphabetError') }}
       </p>
       <div class="mt-4">
         <button app-button variant="outline" type="button" (click)="loadCharacters()">
@@ -53,19 +55,19 @@
         </button>
       </div>
     } @else if (groups(); as groups) {
-      <p class="mt-4 text-xs text-ink-muted">Clique em um caractere para ouvir o código.</p>
+      <p class="mt-4 text-xs text-ink-muted">{{ i18n.t('common.clickToListen') }}</p>
       @for (group of groups; track group.label) {
         <p
           class="mt-8 mb-3 font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted"
         >
-          {{ group.label }}
+          {{ i18n.t(group.label) }}
         </p>
         <div class="flex flex-wrap gap-2">
           @for (character of group.items; track character.id) {
             <button
               class="min-w-16 cursor-pointer border border-line px-3 py-2 text-center transition-colors hover:border-ink"
               type="button"
-              [attr.aria-label]="'Ouvir ' + character.character"
+              [attr.aria-label]="i18n.t('common.listenTo', { character: character.character })"
               (click)="play(character)"
             >
               <span class="block font-display text-lg font-extrabold text-ink">
@@ -77,10 +79,10 @@
         </div>
       }
     } @else {
-      <p class="mt-6 text-sm text-ink-muted">Carregando alfabeto…</p>
+      <p class="mt-6 text-sm text-ink-muted">{{ i18n.t('lessonDetail.alphabetLoading') }}</p>
     }
   } @else {
-    <p class="text-sm text-ink-muted">Carregando lição…</p>
+    <p class="text-sm text-ink-muted">{{ i18n.t('common.loadingLesson') }}</p>
   }
 
   <div class="mt-12">

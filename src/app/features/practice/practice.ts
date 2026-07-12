@@ -1,5 +1,7 @@
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 
+import { I18nService } from '../../core/i18n/i18n.service';
+import { MessageKey } from '../../core/i18n/messages';
 import { MorseAudioService, MorsePlaybackSettings } from '../../services/morse-audio.service';
 import { MorseCharacter, MorseCharactersService } from '../../services/morse-characters.service';
 import { MorseInputService, MorsePressEvent } from '../../services/morse-input.service';
@@ -17,30 +19,30 @@ export type SessionKind = 'time' | 'characters';
 
 interface ModeInfo {
   id: PracticeMode;
-  title: string;
-  description: string;
+  title: MessageKey;
+  description: MessageKey;
 }
 
 const MODES: readonly ModeInfo[] = [
   {
     id: 'key_capture',
-    title: 'Key capture',
-    description: 'Veja o caractere e transmita o código com a tecla configurada.',
+    title: 'practice.modeKeyCapture',
+    description: 'practice.modeKeyCaptureDesc',
   },
   {
     id: 'text_to_morse',
-    title: 'Texto → Morse',
-    description: 'Escolha o código correspondente ao caractere.',
+    title: 'practice.modeTextToMorse',
+    description: 'practice.modeTextToMorseDesc',
   },
   {
     id: 'morse_to_text',
-    title: 'Morse → Texto',
-    description: 'Escolha o caractere correspondente ao código.',
+    title: 'practice.modeMorseToText',
+    description: 'practice.modeMorseToTextDesc',
   },
   {
     id: 'listening',
-    title: 'Listening',
-    description: 'Ouça o código e identifique o caractere.',
+    title: 'practice.modeListening',
+    description: 'practice.modeListeningDesc',
   },
 ];
 
@@ -93,6 +95,7 @@ export class Practice {
   readonly #input = inject(MorseInputService);
   readonly #practice = inject(PracticeService);
   readonly #destroyRef = inject(DestroyRef);
+  protected readonly i18n = inject(I18nService);
 
   protected readonly modes = MODES;
 
@@ -157,9 +160,10 @@ export class Practice {
     return total === 0 || responseMs === 0 ? null : (total * 60_000) / responseMs;
   });
 
-  protected readonly modeTitle = computed(
-    () => MODES.find((info) => info.id === this.mode())?.title ?? '',
-  );
+  protected readonly modeTitle = computed(() => {
+    const info = MODES.find((candidate) => candidate.id === this.mode());
+    return info ? this.i18n.t(info.title) : '';
+  });
 
   #pressDurations: number[] = [];
   #pendingAttempt: PracticeAttempt | null = null;

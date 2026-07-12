@@ -1,6 +1,8 @@
 import { Component, DestroyRef, computed, effect, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { I18nService } from '../../core/i18n/i18n.service';
+import { MessageKey } from '../../core/i18n/messages';
 import { Lesson, LessonsService } from '../../services/lessons.service';
 import { MorseAudioService, MorsePlaybackSettings } from '../../services/morse-audio.service';
 import { MorseCharacter } from '../../services/morse-characters.service';
@@ -25,11 +27,11 @@ const MODE_SEQUENCE: readonly TrainingMode[] = [
   'key_capture',
 ];
 
-const MODE_INSTRUCTIONS: Record<TrainingMode, string> = {
-  text_to_morse: 'Qual é o código?',
-  morse_to_text: 'Qual é o caractere?',
-  listening: 'Ouça e identifique o caractere',
-  key_capture: 'Transmita o caractere',
+const MODE_INSTRUCTIONS: Record<TrainingMode, MessageKey> = {
+  text_to_morse: 'practice.whichCode',
+  morse_to_text: 'practice.whichCharacter',
+  listening: 'practice.listenIdentify',
+  key_capture: 'practice.transmit',
 };
 
 type Stage = 'study' | 'exercise' | 'done';
@@ -78,6 +80,7 @@ export class LessonTraining {
   readonly #input = inject(MorseInputService);
   readonly #practice = inject(PracticeService);
   readonly #destroyRef = inject(DestroyRef);
+  protected readonly i18n = inject(I18nService);
 
   /** Vem da rota (`/lessons/:id/train`) via component input binding. */
   readonly id = input.required<string>();
@@ -110,7 +113,7 @@ export class LessonTraining {
 
   protected readonly instruction = computed(() => {
     const step = this.step();
-    return step ? MODE_INSTRUCTIONS[step.mode] : '';
+    return step ? this.i18n.t(MODE_INSTRUCTIONS[step.mode]) : '';
   });
 
   #pressDurations: number[] = [];

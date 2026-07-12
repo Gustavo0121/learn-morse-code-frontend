@@ -1,37 +1,36 @@
 <main class="flex flex-1 flex-col py-12">
   @if (error()) {
-    <p class="text-sm text-error" role="alert">Não foi possível carregar a lição.</p>
+    <p class="text-sm text-error" role="alert">{{ i18n.t('common.lessonError') }}</p>
     <div class="mt-6">
       <button app-button variant="outline" type="button" (click)="load(id())">Try again</button>
     </div>
   } @else if (lesson(); as lesson) {
     @switch (stage()) {
       @case ('study') {
-        <app-heading eyebrow="Treino guiado" [text]="lesson.title" />
+        <app-heading [eyebrow]="i18n.t('training.eyebrow')" [text]="lesson.title" />
 
         @if (lesson.characters.length === 0) {
           <p class="mt-8 max-w-xl text-sm leading-relaxed text-ink-muted">
-            Esta lição ainda não tem conteúdo de treino.
+            {{ i18n.t('training.noContent') }}
           </p>
           <div class="mt-6">
             <a app-button variant="outline" [routerLink]="['/lessons', lesson.id]">
-              Voltar à lição
+              {{ i18n.t('training.backToLesson') }}
             </a>
           </div>
         } @else {
           <p class="mt-6 max-w-2xl text-sm leading-relaxed text-ink-muted">
-            Conheça os caracteres desta lição — clique em cada um para ouvir o código. Em seguida, o
-            treino percorre os quatro modos de prática usando apenas este conteúdo.
+            {{ i18n.t('training.intro') }}
           </p>
 
-          <app-divider class="mt-10 mb-6" label="Conteúdo" />
+          <app-divider class="mt-10 mb-6" [label]="i18n.t('training.contentLabel')" />
 
           <div class="flex flex-wrap gap-2">
             @for (character of lesson.characters; track character.id) {
               <button
                 class="min-w-16 cursor-pointer border border-line px-3 py-2 text-center transition-colors hover:border-ink"
                 type="button"
-                [attr.aria-label]="'Ouvir ' + character.character"
+                [attr.aria-label]="i18n.t('common.listenTo', { character: character.character })"
                 (click)="play(character)"
               >
                 <span class="block font-display text-lg font-extrabold text-ink">
@@ -44,7 +43,7 @@
 
           <div class="mt-10">
             <button app-button size="lg" type="button" title="Enter" (click)="start()">
-              Começar <span class="ml-2" aria-hidden="true">↵</span>
+              {{ i18n.t('training.start') }} <span class="ml-2" aria-hidden="true">↵</span>
             </button>
           </div>
         }
@@ -56,13 +55,16 @@
         >
           <span>{{ lesson.title }}</span>
           <span class="flex items-center gap-8">
-            <span>Etapa: {{ progress() }}</span>
-            <span>Precisão: {{ accuracy() !== null ? accuracy() + '%' : '—' }}</span>
+            <span>{{ i18n.t('training.stage') }}: {{ progress() }}</span>
+            <span
+              >{{ i18n.t('common.accuracy') }}:
+              {{ accuracy() !== null ? accuracy() + '%' : '—' }}</span
+            >
             <a
               class="uppercase text-ink-muted transition-colors hover:text-ink"
               [routerLink]="['/lessons', lesson.id]"
             >
-              Sair
+              {{ i18n.t('training.exit') }}
             </a>
           </span>
         </div>
@@ -73,15 +75,17 @@
           <section class="flex flex-1 flex-col items-center justify-center gap-6 text-center">
             @if (result.correct) {
               <p class="font-display text-4xl font-extrabold uppercase tracking-tight text-ink">
-                Correto
+                {{ i18n.t('common.correct') }}
               </p>
             } @else {
               <p class="font-display text-4xl font-extrabold uppercase tracking-tight text-error">
-                Errado
+                {{ i18n.t('common.wrong') }}
               </p>
             }
             <p class="text-sm text-ink-muted">
-              Esperado: <span class="text-ink">{{ result.expected_answer }}</span> · Sua resposta:
+              {{ i18n.t('common.expected') }}
+              <span class="text-ink">{{ result.expected_answer }}</span> ·
+              {{ i18n.t('common.yourAnswer') }}
               <span class="text-ink">{{ result.user_answer }}</span>
             </p>
             <div class="mt-4 flex items-center gap-6">
@@ -106,11 +110,11 @@
                 </p>
                 @if (invalidPress()) {
                   <p class="text-sm text-error" role="alert">
-                    Pressionamento longo demais para {{ inputKeyLabel() }} — ignorado.
+                    {{ i18n.t('common.invalidPress', { key: inputKeyLabel() }) }}
                   </p>
                 }
                 <p class="text-sm text-ink-muted">
-                  Pressione {{ inputKeyLabel() }} — solte para encerrar o caractere.
+                  {{ i18n.t('common.pressHint', { key: inputKeyLabel() }) }}
                 </p>
               }
               @case ('text_to_morse') {
@@ -146,12 +150,12 @@
             }
 
             @if (submitError()) {
-              <p class="text-sm text-error" role="alert">Não foi possível registrar a tentativa.</p>
+              <p class="text-sm text-error" role="alert">{{ i18n.t('common.submitError') }}</p>
               <button app-button variant="outline" type="button" (click)="retrySubmit()">
                 Try again
               </button>
             } @else if (submitting()) {
-              <p class="text-sm text-ink-muted">Registrando…</p>
+              <p class="text-sm text-ink-muted">{{ i18n.t('common.submitting') }}</p>
             }
           </section>
         }
@@ -161,7 +165,7 @@
         <section class="flex flex-1 flex-col items-center justify-center gap-8 text-center">
           <div>
             <p class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
-              Treino concluído
+              {{ i18n.t('training.done') }}
             </p>
             <p class="mt-4 font-display text-7xl font-extrabold tracking-tight text-ink">
               {{ accuracy() !== null ? accuracy() + '%' : '—' }}
@@ -169,28 +173,32 @@
             <p
               class="mt-2 font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted"
             >
-              Precisão
+              {{ i18n.t('common.accuracy') }}
             </p>
           </div>
 
           <p class="text-sm text-ink-muted">
-            <span class="text-ink">{{ totalCorrect() }}</span> de
-            <span class="text-ink">{{ totalAnswered() }}</span> corretas em
-            <span class="text-ink">{{ lesson.title }}</span>
+            {{
+              i18n.t('training.summary', {
+                correct: totalCorrect(),
+                total: totalAnswered(),
+                title: lesson.title,
+              })
+            }}
           </p>
 
           <div class="mt-2 flex items-center gap-6">
             <button app-button type="button" title="Enter" (click)="start()">
-              Repetir <span class="ml-2" aria-hidden="true">↵</span>
+              {{ i18n.t('training.repeat') }} <span class="ml-2" aria-hidden="true">↵</span>
             </button>
             <a app-button variant="outline" [routerLink]="['/lessons', lesson.id]">
-              Voltar à lição
+              {{ i18n.t('training.backToLesson') }}
             </a>
           </div>
         </section>
       }
     }
   } @else {
-    <p class="text-sm text-ink-muted">Carregando lição…</p>
+    <p class="text-sm text-ink-muted">{{ i18n.t('common.loadingLesson') }}</p>
   }
 </main>

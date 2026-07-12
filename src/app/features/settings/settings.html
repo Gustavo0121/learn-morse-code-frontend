@@ -36,7 +36,7 @@
               [attr.aria-pressed]="draft.frequency === option.value"
               (click)="update('frequency', option.value)"
             >
-              {{ option.label }} · {{ option.value }} Hz
+              {{ i18n.t(option.label) }} · {{ option.value }} Hz
             </button>
           }
         </div>
@@ -108,10 +108,10 @@
             }
           </div>
           <p class="mt-3 text-xs text-ink-muted">
-            Somente as teclas acima são aceitas — a lista vem do servidor.
+            {{ i18n.t('settings.allowedKeysHint') }}
           </p>
         } @else {
-          <p class="text-sm text-error">Não foi possível carregar as teclas permitidas.</p>
+          <p class="text-sm text-error">{{ i18n.t('settings.allowedKeysError') }}</p>
         }
       </div>
     </div>
@@ -120,7 +120,7 @@
 
     <div class="flex min-h-14 flex-wrap items-center gap-6">
       @if (confirming()) {
-        <p class="text-sm text-ink-muted">Confirmar alterações nas preferências?</p>
+        <p class="text-sm text-ink-muted">{{ i18n.t('settings.confirmPrompt') }}</p>
         <button app-button type="button" [disabled]="saving()" (click)="confirmSave()">
           {{ saving() ? 'Saving…' : 'Confirm' }}
         </button>
@@ -144,6 +144,6 @@
       }
     </div>
   } @else {
-    <p class="mt-10 text-sm text-ink-muted">Carregando preferências…</p>
+    <p class="mt-10 text-sm text-ink-muted">{{ i18n.t('settings.loading') }}</p>
   }
 </main>

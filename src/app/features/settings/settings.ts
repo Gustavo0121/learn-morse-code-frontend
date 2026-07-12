@@ -1,6 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 
+import { I18nService } from '../../core/i18n/i18n.service';
+import { MessageKey } from '../../core/i18n/messages';
 import { Button } from '../../shared/ui/button/button';
 import { Divider } from '../../shared/ui/divider/divider';
 import { Heading } from '../../shared/ui/heading/heading';
@@ -13,11 +15,11 @@ import {
 
 /** Opções espelhando os choices/validators do backend — nunca substituindo-os. */
 const SPEED_OPTIONS: readonly number[] = [5, 10, 15, 20, 30, 40, 60];
-const FREQUENCY_OPTIONS = [
-  { label: 'Grave', value: 400 },
-  { label: 'Médio', value: 700 },
-  { label: 'Agudo', value: 1000 },
-] as const;
+const FREQUENCY_OPTIONS: readonly { label: MessageKey; value: number }[] = [
+  { label: 'settings.freqLow', value: 400 },
+  { label: 'settings.freqMid', value: 700 },
+  { label: 'settings.freqHigh', value: 1000 },
+];
 const WAVE_OPTIONS: readonly WaveType[] = ['sine', 'square', 'triangle', 'sawtooth'];
 
 /** Amostra tocada pelo "Test sound": LMC em Morse — demonstra timbre e velocidade. */
@@ -37,6 +39,7 @@ interface Feedback {
 export class Settings {
   readonly #settingsService = inject(MorseSettingsService);
   readonly #audio = inject(MorseAudioService);
+  protected readonly i18n = inject(I18nService);
 
   protected readonly speedOptions = SPEED_OPTIONS;
   protected readonly frequencyOptions = FREQUENCY_OPTIONS;
@@ -122,7 +125,7 @@ export class Settings {
       next: () => {
         this.saving.set(false);
         this.confirming.set(false);
-        this.feedback.set({ kind: 'success', text: 'Preferências salvas.' });
+        this.feedback.set({ kind: 'success', text: this.i18n.t('settings.saved') });
       },
       error: (error: unknown) => {
         this.saving.set(false);
@@ -154,6 +157,6 @@ export class Settings {
         return messages.join(' ');
       }
     }
-    return 'Não foi possível salvar. Tente novamente.';
+    return this.i18n.t('settings.saveError');
   }
 }

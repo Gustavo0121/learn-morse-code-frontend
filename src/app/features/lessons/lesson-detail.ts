@@ -1,6 +1,8 @@
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { I18nService } from '../../core/i18n/i18n.service';
+import { MessageKey } from '../../core/i18n/messages';
 import { Lesson, LessonsService } from '../../services/lessons.service';
 import { MorseAudioService, MorsePlaybackSettings } from '../../services/morse-audio.service';
 import { MorseCharacter, MorseCharactersService } from '../../services/morse-characters.service';
@@ -9,10 +11,10 @@ import { Button } from '../../shared/ui/button/button';
 import { Divider } from '../../shared/ui/divider/divider';
 import { Heading } from '../../shared/ui/heading/heading';
 
-const TYPE_LABELS: Record<MorseCharacter['type'], string> = {
-  letter: 'Letras',
-  number: 'Números',
-  punctuation: 'Pontuação',
+const TYPE_LABELS: Record<MorseCharacter['type'], MessageKey> = {
+  letter: 'lessonDetail.letters',
+  number: 'lessonDetail.numbers',
+  punctuation: 'lessonDetail.punctuation',
 };
 
 /** Fallback para ouvir os caracteres antes de as preferências carregarem. */
@@ -24,7 +26,7 @@ const DEFAULT_PLAYBACK: MorsePlaybackSettings = {
 };
 
 interface CharacterGroup {
-  label: string;
+  label: MessageKey;
   items: MorseCharacter[];
 }
 
@@ -39,6 +41,7 @@ export class LessonDetail {
   readonly #charactersService = inject(MorseCharactersService);
   readonly #audio = inject(MorseAudioService);
   readonly #settings = inject(MorseSettingsService);
+  protected readonly i18n = inject(I18nService);
 
   /** Vem da rota (`/lessons/:id`) via component input binding. */
   readonly id = input.required<string>();

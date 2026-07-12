@@ -4,13 +4,13 @@
   <app-divider class="mt-10" label="Trail" />
 
   @if (error()) {
-    <p class="mt-8 text-sm text-error" role="alert">Não foi possível carregar as lições.</p>
+    <p class="mt-8 text-sm text-error" role="alert">{{ i18n.t('lessons.error') }}</p>
     <div class="mt-6">
       <button app-button variant="outline" type="button" (click)="load()">Try again</button>
     </div>
   } @else if (lessons(); as lessons) {
     @if (lessons.length === 0) {
-      <p class="mt-8 text-sm text-ink-muted">Nenhuma lição disponível ainda.</p>
+      <p class="mt-8 text-sm text-ink-muted">{{ i18n.t('lessons.empty') }}</p>
     } @else {
       <ol>
         @for (lesson of lessons; track lesson.id) {
@@ -39,7 +39,7 @@
               <span
                 class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted"
               >
-                Nível {{ lesson.difficulty }}
+                {{ i18n.t('common.level', { level: lesson.difficulty }) }}
               </span>
             </a>
           </li>
@@ -47,6 +47,6 @@
       </ol>
     }
   } @else {
-    <p class="mt-8 text-sm text-ink-muted">Carregando lições…</p>
+    <p class="mt-8 text-sm text-ink-muted">{{ i18n.t('lessons.loading') }}</p>
   }
 </main>

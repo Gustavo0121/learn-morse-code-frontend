@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { I18nService } from '../../core/i18n/i18n.service';
 import { Button } from '../../shared/ui/button/button';
 import { Heading } from '../../shared/ui/heading/heading';
 
@@ -13,7 +14,7 @@ import { Heading } from '../../shared/ui/heading/heading';
       <app-heading text="Learn Morse Code" />
 
       <p class="mt-4 max-w-xl text-sm leading-relaxed text-ink-muted">
-        Treino auditivo e captura por tecla, no seu ritmo.
+        {{ i18n.t('home.tagline') }}
       </p>
 
       <div class="mt-10">
@@ -22,4 +23,6 @@ import { Heading } from '../../shared/ui/heading/heading';
     </main>
   `,
 })
-export class Home {}
+export class Home {
+  protected readonly i18n = inject(I18nService);
+}
