@@ -76,6 +76,14 @@ src/app/
 - `/lessons/:id` mostra o detalhe da lição (`GET /api/lessons/{id}` via component input binding) e o **alfabeto Morse de referência** (`GET /api/morse-characters`, cacheado — conteúdo estático), agrupado em Letras/Números/Pontuação. **Clicar em um caractere toca o código dele** com as preferências do usuário.
 - Falha no alfabeto não derruba a página da lição; cada bloco tem retry próprio.
 
+## Prática (`/practice`)
+
+- Quatro modos: **Key capture** (vê o caractere e transmite o código com a tecla configurada), **Texto → Morse** e **Morse → Texto** (múltipla escolha) e **Listening** (ouve o código e identifica o caractere).
+- Tela de treino em layout de foco: modo, tempo (`mm:ss`) e precisão da sessão no topo; caractere/código em destaque no centro.
+- No key_capture, os símbolos aparecem conforme a captura (`.-`); uma pausa (gap de palavra, mínimo 600 ms) encerra o caractere e envia automaticamente. Pressionamentos fora da faixa aceita pelo backend são descartados com aviso — nunca entram no envio.
+- Envio para `POST /api/practice/history` com os campos exatos do contrato: key_capture manda `press_durations` + `input_method` (o backend reclassifica e deriva `user_answer`); os demais mandam `user_answer`; `correct` nunca é enviado. Erro de rede oferece retry com o mesmo payload.
+- Feedback de acerto/erro com resposta esperada, resposta dada e tempo de reação.
+
 ## Design system
 
 Identidade minimalista premium (fundo `#050505`, texto `#FFFFFF`/`#A0A0A0`, fontes Inter/Manrope). Os design tokens ficam em `src/tailwind.css` (`@theme`), com contraste validado WCAG AA/AAA; o tema do Angular Material é alinhado a eles em `src/styles.scss`.

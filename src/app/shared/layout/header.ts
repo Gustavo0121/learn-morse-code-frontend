@@ -32,6 +32,9 @@ import { AuthService } from '../../core/auth/auth.service';
           <a class="text-ink-muted transition-colors hover:text-ink" routerLink="/lessons">
             Lessons
           </a>
+          <a class="text-ink-muted transition-colors hover:text-ink" routerLink="/practice">
+            Practice
+          </a>
           <a class="text-ink-muted transition-colors hover:text-ink" routerLink="/settings">
             Settings
           </a>

@@ -11,6 +11,6 @@ describe('Home', () => {
 
     const cta = screen.getByRole('link', { name: /start training/i });
     expect(cta).toBeVisible();
-    expect(cta).toHaveAttribute('href', '/dashboard');
+    expect(cta).toHaveAttribute('href', '/practice');
   });
 });
