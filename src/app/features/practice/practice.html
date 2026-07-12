@@ -130,19 +130,65 @@
     <app-divider class="mt-4 mb-8" />
 
     @if (finished()) {
-      <section class="flex flex-1 flex-col items-center justify-center gap-6 text-center">
-        <p class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
-          Sessão concluída
-        </p>
-        <p class="font-display text-7xl font-extrabold tracking-tight text-ink">
-          {{ accuracy() !== null ? accuracy() + '%' : '—' }}
-        </p>
-        <p class="text-sm text-ink-muted">
-          <span class="text-ink">{{ sessionCorrect() }}</span> de
-          <span class="text-ink">{{ sessionTotal() }}</span> corretas · Tempo:
-          <span class="text-ink">{{ elapsedClock() }}</span>
-        </p>
-        <div class="mt-4 flex items-center gap-6">
+      <section class="flex flex-1 flex-col items-center justify-center gap-10 text-center">
+        <div>
+          <p class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
+            Sessão concluída
+          </p>
+          <p class="mt-4 font-display text-7xl font-extrabold tracking-tight text-ink">
+            {{ accuracy() !== null ? accuracy() + '%' : '—' }}
+          </p>
+          <p
+            class="mt-2 font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted"
+          >
+            Precisão
+          </p>
+        </div>
+
+        <dl class="grid grid-cols-2 gap-x-12 gap-y-8 md:grid-cols-5">
+          <div>
+            <dt class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
+              Teste
+            </dt>
+            <dd class="mt-2 font-display text-xl font-extrabold tracking-tight text-ink">
+              {{ modeTitle() }}
+            </dd>
+          </div>
+          <div>
+            <dt class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
+              Sessão
+            </dt>
+            <dd class="mt-2 font-display text-xl font-extrabold tracking-tight text-ink">
+              {{ sessionLabel() }}
+            </dd>
+          </div>
+          <div>
+            <dt class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
+              Velocidade
+            </dt>
+            <dd class="mt-2 font-display text-xl font-extrabold tracking-tight text-ink">
+              {{ cpmLabel() }}
+            </dd>
+          </div>
+          <div>
+            <dt class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
+              Acertos
+            </dt>
+            <dd class="mt-2 font-display text-xl font-extrabold tracking-tight text-ink">
+              {{ sessionCorrect() }}/{{ sessionTotal() }}
+            </dd>
+          </div>
+          <div>
+            <dt class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
+              Tempo
+            </dt>
+            <dd class="mt-2 font-display text-xl font-extrabold tracking-tight text-ink">
+              {{ elapsedClock() }}
+            </dd>
+          </div>
+        </dl>
+
+        <div class="mt-2 flex items-center gap-6">
           <button app-button type="button" (click)="restartSession()">Restart</button>
           <button app-button variant="outline" type="button" (click)="changeMode()">
             Change mode

@@ -278,7 +278,9 @@ describe('Practice', () => {
 
     expect(await screen.findByText('Sessão concluída')).toBeVisible();
     expect(screen.getByText('100%')).toBeVisible();
-    expect(screen.getByText(/corretas/)).toHaveTextContent('10 de 10 corretas');
+    // 10 tentativas de 1500 ms → 10 × 60000 / 15000 = 40 cpm (fórmula do backend).
+    expect(screen.getByText('40.0 cpm')).toBeVisible();
+    expect(screen.getByText('Characters · 10')).toBeVisible();
 
     fireEvent.click(screen.getByRole('button', { name: /restart/i }));
     expect(await screen.findByText(/qual é o código\?/i)).toBeVisible();
@@ -314,7 +316,11 @@ describe('Practice', () => {
     detectChanges();
 
     expect(screen.getByText('Sessão concluída')).toBeVisible();
-    expect(screen.getByText(/corretas/)).toHaveTextContent('1 de 1 corretas · Tempo: 00:15');
+    expect(screen.getByText('100%')).toBeVisible();
+    expect(screen.getByText('1/1')).toBeVisible();
+    expect(screen.getByText('Time · 15s')).toBeVisible();
+    expect(screen.getByText('00:15')).toBeVisible();
+    expect(screen.getByText('40.0 cpm')).toBeVisible();
   });
 
   it('exibe a seleção de modos com os quatro modos do produto', async () => {

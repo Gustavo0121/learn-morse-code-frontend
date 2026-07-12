@@ -139,10 +139,19 @@ export class Practice {
   protected readonly elapsedS = signal(0);
   protected readonly sessionTotal = signal(0);
   protected readonly sessionCorrect = signal(0);
+  /** Soma dos tempos de resposta da sessão (ms) — base do cpm, como no backend. */
+  readonly #sessionResponseMs = signal(0);
 
   protected readonly accuracy = computed(() => {
     const total = this.sessionTotal();
     return total === 0 ? null : Math.round((this.sessionCorrect() / total) * 100);
+  });
+
+  /** Caracteres por minuto, com a mesma fórmula do agregado do backend. */
+  protected readonly sessionCpm = computed(() => {
+    const total = this.sessionTotal();
+    const responseMs = this.#sessionResponseMs();
+    return total === 0 || responseMs === 0 ? null : (total * 60_000) / responseMs;
   });
 
   protected readonly modeTitle = computed(
@@ -230,6 +239,7 @@ export class Practice {
     this.submitError.set(false);
     this.sessionTotal.set(0);
     this.sessionCorrect.set(0);
+    this.#sessionResponseMs.set(0);
     this.#stopClock();
     this.elapsedS.set(0);
     this.startRound();
@@ -316,6 +326,17 @@ export class Practice {
   /** Tempo decorrido da sessão (exibido no resumo final). */
   protected elapsedClock(): string {
     return this.#formatClock(this.elapsedS());
+  }
+
+  protected cpmLabel(): string {
+    const cpm = this.sessionCpm();
+    return cpm === null ? '—' : `${cpm.toFixed(1)} cpm`;
+  }
+
+  /** Configuração da sessão exibida no resumo (ex.: "Characters · 10"). */
+  protected sessionLabel(): string {
+    const goal = this.sessionGoal();
+    return this.sessionKind() === 'time' ? `Time · ${goal}s` : `Characters · ${goal}`;
   }
 
   #formatClock(totalS: number): string {
@@ -412,6 +433,7 @@ export class Practice {
         this.submitting.set(false);
         this.#pendingAttempt = null;
         this.sessionTotal.update((total) => total + 1);
+        this.#sessionResponseMs.update((ms) => ms + record.response_time);
         if (record.correct) {
           this.sessionCorrect.update((correct) => correct + 1);
         }
