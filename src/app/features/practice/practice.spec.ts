@@ -14,6 +14,8 @@ const CHARACTERS: MorseCharacter[] = [
   { id: 2, character: 'E', code: '.', type: 'letter' },
   { id: 3, character: 'T', code: '-', type: 'letter' },
   { id: 4, character: 'N', code: '-.', type: 'letter' },
+  { id: 5, character: '5', code: '.....', type: 'number' },
+  { id: 6, character: '?', code: '..--..', type: 'punctuation' },
 ];
 
 function record(overrides: Partial<PracticeRecord>): PracticeRecord {
@@ -222,6 +224,97 @@ describe('Practice', () => {
     retry.flush(record({}), { status: 201, statusText: 'Created' });
 
     expect(await screen.findByText('Correto')).toBeVisible();
+  });
+
+  it('sorteia só letras por padrão; ligar Numbers amplia o sorteio e reinicia a sessão', async () => {
+    await setup();
+
+    fireEvent.click(screen.getByRole('button', { name: /texto → morse/i }));
+    // random = 0.9 → último caractere do pool: 'N' só com letras, '5' com números.
+    vi.spyOn(Math, 'random').mockReturnValue(0.9);
+    fireEvent.click(screen.getByRole('button', { name: /^numbers$/i }));
+
+    expect(await screen.findByText('5')).toBeVisible();
+    expect(screen.getByRole('button', { name: /^numbers$/i })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+  });
+
+  it('mudar a configuração nas barras reinicia a sessão (contadores zerados)', async () => {
+    const { http } = await setup();
+
+    fireEvent.click(screen.getByRole('button', { name: /texto → morse/i }));
+    fireEvent.click(await screen.findByRole('button', { name: '.-' }));
+    http.expectOne('/api/practice/history').flush(record({}), {
+      status: 201,
+      statusText: 'Created',
+    });
+    expect(await screen.findByText(/precisão: 100%/i)).toBeVisible();
+    expect(screen.getByText('1/10')).toBeVisible();
+
+    fireEvent.click(screen.getByRole('button', { name: /^punctuation$/i }));
+
+    expect(await screen.findByText(/precisão: —/i)).toBeVisible();
+    expect(screen.getByText('0/10')).toBeVisible();
+    expect(screen.queryByText('Correto')).not.toBeInTheDocument();
+  });
+
+  it('sessão por caracteres termina na meta e mostra o resumo com Restart', async () => {
+    const { http } = await setup();
+
+    fireEvent.click(screen.getByRole('button', { name: /texto → morse/i }));
+
+    for (let attempt = 1; attempt <= 10; attempt++) {
+      fireEvent.click(await screen.findByRole('button', { name: '.-' }));
+      http.expectOne('/api/practice/history').flush(record({}), {
+        status: 201,
+        statusText: 'Created',
+      });
+      if (attempt < 10) {
+        fireEvent.click(await screen.findByRole('button', { name: /next/i }));
+      }
+    }
+
+    expect(await screen.findByText('Sessão concluída')).toBeVisible();
+    expect(screen.getByText('100%')).toBeVisible();
+    expect(screen.getByText(/corretas/)).toHaveTextContent('10 de 10 corretas');
+
+    fireEvent.click(screen.getByRole('button', { name: /restart/i }));
+    expect(await screen.findByText(/qual é o código\?/i)).toBeVisible();
+    expect(screen.getByText('0/10')).toBeVisible();
+  });
+
+  it('sessão por tempo só conta a partir do primeiro input e expira no resumo', async () => {
+    const { http, detectChanges } = await setup();
+    useTimers();
+
+    fireEvent.click(screen.getByRole('button', { name: /texto → morse/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^time$/i }));
+    expect(screen.getByText(/tempo: 01:00/i)).toBeVisible();
+
+    fireEvent.click(screen.getByRole('button', { name: '15' }));
+
+    // Sem input do usuário, o relógio não anda: segue mostrando a meta cheia.
+    now += 5_000;
+    await vi.advanceTimersByTimeAsync(5_000);
+    detectChanges();
+    expect(screen.getByText(/tempo: 00:15/i)).toBeVisible();
+
+    // Primeiro input (resposta) dispara a contagem regressiva.
+    fireEvent.click(screen.getByRole('button', { name: '.-' }));
+    http.expectOne('/api/practice/history').flush(record({}), {
+      status: 201,
+      statusText: 'Created',
+    });
+    detectChanges();
+
+    now += 15_000;
+    await vi.advanceTimersByTimeAsync(500);
+    detectChanges();
+
+    expect(screen.getByText('Sessão concluída')).toBeVisible();
+    expect(screen.getByText(/corretas/)).toHaveTextContent('1 de 1 corretas · Tempo: 00:15');
   });
 
   it('exibe a seleção de modos com os quatro modos do produto', async () => {
