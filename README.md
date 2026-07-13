@@ -19,16 +19,19 @@ npm start          # dev server em http://localhost:4200
 
 O dev server faz proxy de `/api` para o backend Django em `http://localhost:8000` (`proxy.conf.json`), mantendo cookies em contexto same-origin. Suba o backend antes para usar login/refresh.
 
+**Ambientes e URL da API**: por design, existe um único `environment.ts` com `apiUrl: '/api'` (relativo) para todos os ambientes — em dev o proxy resolve, em produção o rewrite do host estático resolve (ver `DEPLOY.md`). Não há URLs de API por ambiente para configurar; a única variável de build é `NODE_VERSION=22` no host.
+
 ## Comandos
 
-| Comando                | Descrição                         |
-| ---------------------- | --------------------------------- |
-| `npm start`            | Servidor de desenvolvimento       |
-| `npm test`             | Testes unitários (Vitest)         |
-| `npm run lint`         | ESLint (TS + templates)           |
-| `npm run format`       | Formata o código com Prettier     |
-| `npm run format:check` | Verifica formatação (usado no CI) |
-| `npm run build`        | Build de produção em `dist/`      |
+| Comando                  | Descrição                                    |
+| ------------------------ | -------------------------------------------- |
+| `npm start`              | Servidor de desenvolvimento                  |
+| `npm test`               | Testes unitários (Vitest)                    |
+| `npm run lint`           | ESLint (TS + templates)                      |
+| `npm run format`         | Formata o código com Prettier                |
+| `npm run format:check`   | Verifica formatação (usado no CI)            |
+| `npm run audit:security` | `npm audit` com gate em `high` (usado no CI) |
+| `npm run build`          | Build de produção em `dist/`                 |
 
 ## Estrutura
 
@@ -105,6 +108,34 @@ src/app/
 - Seletor **PT / EN** no header, persistido em `localStorage` (`lmc.locale`; preferência de idioma, não é dado sensível). Padrão: `pt`.
 - Tradução em runtime via `I18nService` (`core/i18n/`): `t(chave, params?)` lê o signal `locale`, então bindings e computeds que o chamam reagem à troca de idioma sem reload.
 - Dicionário tipado em `core/i18n/messages.ts` (`MessageKey` é união literal — chave inexistente não compila). O locale `pt` corresponde à UI original; rótulos editoriais em inglês do design (headings, "Sign in", "Next", barras da prática) são iguais nos dois idiomas e ficam fora do dicionário.
+
+## CI/CD e deploy
+
+```
+Commit → Lint → Formatação → Testes → Security Audit → Build ─(push na main)→ Deploy
+```
+
+- O job `quality` roda em todo push/PR para `dev` e `main`; o job `deploy` só roda em push na `main`, **depois** de todo o pipeline passar, disparando o Deploy Hook do Render (secret `RENDER_DEPLOY_HOOK_URL`).
+- Build de produção com lazy loading por feature (cada rota vira um chunk próprio) e tree-shaking do esbuild.
+- Passo a passo completo do deploy (Render + Neon + Upstash), custos, domínio próprio e **processo de rollback**: ver [`DEPLOY.md`](DEPLOY.md).
+
+## Qualidade
+
+- **Cobertura de testes** (Vitest, `npm run test:ci`): ~94% de statements e ~89% de branches em 115 testes. Meta acordada: **manter statements ≥ 90%** — novas features entram com testes.
+- Revisão de engenharia (Fase 10): sem `any`/`eslint-disable`/`TODO` no `src/`, tipagem estrita, regras de negócio em serviços dedicados, componentes enxutos.
+- **Responsividade**: todas as telas funcionam em tablet/mobile (grids colapsam, barras quebram linha), mas a experiência prioritária é desktop — o treino depende de teclado físico.
+
+## Segurança
+
+Checklist de hardening (Fase 8) aplicado e verificado:
+
+- **XSS**: nenhum uso de `innerHTML`/`outerHTML`/`bypassSecurity` no código — toda renderização passa por templates Angular (interpolação sempre escapada).
+- **Storage**: nada sensível em `localStorage`/`sessionStorage`. O único item persistido é `lmc.locale` (preferência de idioma). Access token vive só em Signal; refresh token só no cookie `httpOnly` (confirmado no backend: `httponly=True`, `SameSite=Strict`, `secure` fora de DEBUG, com testes em `apps/accounts/tests/test_auth.py`).
+- **Logging**: nenhum `console.*` toca em token ou dado de sessão (único uso é o `catch` do bootstrap em `main.ts`).
+- **Logout**: backend expira o cookie de refresh; o frontend descarta access token, perfil e preferências do estado (`AuthService.#closeSession`) mesmo se a chamada de logout falhar.
+- **Formulários**: login/cadastro com `required` + `maxLength` (+ `email`); demais entradas são controles fechados (sliders, seleção restrita à whitelist de teclas do backend). A validação do cliente nunca substitui a do servidor.
+- **Dependências**: `npm audit` zerado. Dois advisories _low_ em tooling de dev foram resolvidos via `overrides` no `package.json` (`@babel/core 7.29.7`, `vite 7.3.6` — patches dentro da mesma série que o `@angular/build` fixa); remover os overrides quando o `@angular/build` atualizar esses pins.
+- **CI**: etapa **Security Audit** (`npm run audit:security`, gate em severidade `high`) roda entre os testes e o build.
 
 ## Design system
 

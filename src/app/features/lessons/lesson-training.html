@@ -140,6 +140,11 @@
                   <button
                     class="min-w-20 cursor-pointer border border-line px-6 py-4 font-display text-xl font-extrabold text-ink transition-colors hover:border-ink"
                     type="button"
+                    [class]="
+                      step.mode === 'text_to_morse'
+                        ? 'tracking-[0.4em] pl-[calc(1.5rem+0.4em)]'
+                        : ''
+                    "
                     [disabled]="submitting()"
                     (click)="answer(option)"
                   >
