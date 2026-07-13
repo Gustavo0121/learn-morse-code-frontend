@@ -30,5 +30,29 @@ jobs:
       - name: Testes
         run: npm run test:ci
 
+      - name: Security Audit
+        run: npm run audit:security
+
       - name: Build
         run: npm run build
+
+  # Produção: push na main dispara o deploy no Render somente depois de todo o
+  # job de qualidade passar. Exige o secret RENDER_DEPLOY_HOOK_URL (Settings →
+  # Secrets) com a Deploy Hook URL do static site — e Auto-Deploy DESLIGADO no
+  # Render, senão cada push deploya duas vezes. Sem o secret, o job falha
+  # explicitamente em vez de fingir que deployou.
+  deploy:
+    name: Deploy (Render)
+    needs: quality
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Disparar Deploy Hook
+        run: |
+          if [ -z "$DEPLOY_HOOK_URL" ]; then
+            echo "::error::Secret RENDER_DEPLOY_HOOK_URL não configurado"
+            exit 1
+          fi
+          curl --fail --silent --show-error --request POST "$DEPLOY_HOOK_URL"
+        env:
+          DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}

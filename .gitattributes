@@ -1,0 +1,4 @@
+# Normaliza fins de linha: LF no repositório e no working tree,
+# independente do core.autocrlf de cada máquina. Mantém o Prettier
+# (endOfLine: lf) e o format:check do CI consistentes em Windows/Linux.
+* text=auto eol=lf
