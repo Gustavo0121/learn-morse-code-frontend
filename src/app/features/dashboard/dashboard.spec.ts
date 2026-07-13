@@ -93,7 +93,8 @@ describe('Dashboard', () => {
     });
     await done;
 
-    expect(await screen.findByText(/signed in as gu/i)).toBeVisible();
+    expect(await screen.findByRole('heading', { level: 1, name: 'gu' })).toBeVisible();
+    expect(screen.getByText('Dashboard')).toBeVisible();
     http.verify();
   });
 

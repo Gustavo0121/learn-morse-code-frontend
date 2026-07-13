@@ -44,9 +44,12 @@ export class Dashboard {
   readonly #practiceService = inject(PracticeService);
   protected readonly i18n = inject(I18nService);
 
-  protected readonly eyebrow = computed(() => {
+  /** Nome do usuário como título editorial; "Dashboard" desce para o eyebrow. */
+  protected readonly heading = computed(() => {
     const user = this.#auth.currentUser();
-    return user ? `Signed in as ${user.username}` : '';
+    return user
+      ? { text: user.username, eyebrow: 'Dashboard' }
+      : { text: 'Dashboard', eyebrow: '' };
   });
 
   protected readonly stats = signal<UserStatistics | null>(null);
