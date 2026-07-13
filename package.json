@@ -9,11 +9,16 @@
     "test": "ng test",
     "test:ci": "ng test --no-watch --coverage",
     "lint": "ng lint",
+    "audit:security": "npm audit --audit-level=high",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
   "private": true,
   "packageManager": "npm@11.16.0",
+  "overrides": {
+    "@babel/core": "7.29.7",
+    "vite": "7.3.6"
+  },
   "dependencies": {
     "@angular/cdk": "^22.0.4",
     "@angular/common": "^22.0.0",

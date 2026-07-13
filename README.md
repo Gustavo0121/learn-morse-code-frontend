@@ -21,14 +21,15 @@ O dev server faz proxy de `/api` para o backend Django em `http://localhost:8000
 
 ## Comandos
 
-| Comando                | Descrição                         |
-| ---------------------- | --------------------------------- |
-| `npm start`            | Servidor de desenvolvimento       |
-| `npm test`             | Testes unitários (Vitest)         |
-| `npm run lint`         | ESLint (TS + templates)           |
-| `npm run format`       | Formata o código com Prettier     |
-| `npm run format:check` | Verifica formatação (usado no CI) |
-| `npm run build`        | Build de produção em `dist/`      |
+| Comando                  | Descrição                                    |
+| ------------------------ | -------------------------------------------- |
+| `npm start`              | Servidor de desenvolvimento                  |
+| `npm test`               | Testes unitários (Vitest)                    |
+| `npm run lint`           | ESLint (TS + templates)                      |
+| `npm run format`         | Formata o código com Prettier                |
+| `npm run format:check`   | Verifica formatação (usado no CI)            |
+| `npm run audit:security` | `npm audit` com gate em `high` (usado no CI) |
+| `npm run build`          | Build de produção em `dist/`                 |
 
 ## Estrutura
 
@@ -105,6 +106,18 @@ src/app/
 - Seletor **PT / EN** no header, persistido em `localStorage` (`lmc.locale`; preferência de idioma, não é dado sensível). Padrão: `pt`.
 - Tradução em runtime via `I18nService` (`core/i18n/`): `t(chave, params?)` lê o signal `locale`, então bindings e computeds que o chamam reagem à troca de idioma sem reload.
 - Dicionário tipado em `core/i18n/messages.ts` (`MessageKey` é união literal — chave inexistente não compila). O locale `pt` corresponde à UI original; rótulos editoriais em inglês do design (headings, "Sign in", "Next", barras da prática) são iguais nos dois idiomas e ficam fora do dicionário.
+
+## Segurança
+
+Checklist de hardening (Fase 8) aplicado e verificado:
+
+- **XSS**: nenhum uso de `innerHTML`/`outerHTML`/`bypassSecurity` no código — toda renderização passa por templates Angular (interpolação sempre escapada).
+- **Storage**: nada sensível em `localStorage`/`sessionStorage`. O único item persistido é `lmc.locale` (preferência de idioma). Access token vive só em Signal; refresh token só no cookie `httpOnly` (confirmado no backend: `httponly=True`, `SameSite=Strict`, `secure` fora de DEBUG, com testes em `apps/accounts/tests/test_auth.py`).
+- **Logging**: nenhum `console.*` toca em token ou dado de sessão (único uso é o `catch` do bootstrap em `main.ts`).
+- **Logout**: backend expira o cookie de refresh; o frontend descarta access token, perfil e preferências do estado (`AuthService.#closeSession`) mesmo se a chamada de logout falhar.
+- **Formulários**: login/cadastro com `required` + `maxLength` (+ `email`); demais entradas são controles fechados (sliders, seleção restrita à whitelist de teclas do backend). A validação do cliente nunca substitui a do servidor.
+- **Dependências**: `npm audit` zerado. Dois advisories _low_ em tooling de dev foram resolvidos via `overrides` no `package.json` (`@babel/core 7.29.7`, `vite 7.3.6` — patches dentro da mesma série que o `@angular/build` fixa); remover os overrides quando o `@angular/build` atualizar esses pins.
+- **CI**: etapa **Security Audit** (`npm run audit:security`, gate em severidade `high`) roda entre os testes e o build.
 
 ## Design system
 
