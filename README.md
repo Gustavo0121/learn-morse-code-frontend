@@ -19,6 +19,8 @@ npm start          # dev server em http://localhost:4200
 
 O dev server faz proxy de `/api` para o backend Django em `http://localhost:8000` (`proxy.conf.json`), mantendo cookies em contexto same-origin. Suba o backend antes para usar login/refresh.
 
+**Ambientes e URL da API**: por design, existe um único `environment.ts` com `apiUrl: '/api'` (relativo) para todos os ambientes — em dev o proxy resolve, em produção o rewrite do host estático resolve (ver `DEPLOY.md`). Não há URLs de API por ambiente para configurar; a única variável de build é `NODE_VERSION=22` no host.
+
 ## Comandos
 
 | Comando                  | Descrição                                    |
@@ -106,6 +108,22 @@ src/app/
 - Seletor **PT / EN** no header, persistido em `localStorage` (`lmc.locale`; preferência de idioma, não é dado sensível). Padrão: `pt`.
 - Tradução em runtime via `I18nService` (`core/i18n/`): `t(chave, params?)` lê o signal `locale`, então bindings e computeds que o chamam reagem à troca de idioma sem reload.
 - Dicionário tipado em `core/i18n/messages.ts` (`MessageKey` é união literal — chave inexistente não compila). O locale `pt` corresponde à UI original; rótulos editoriais em inglês do design (headings, "Sign in", "Next", barras da prática) são iguais nos dois idiomas e ficam fora do dicionário.
+
+## CI/CD e deploy
+
+```
+Commit → Lint → Formatação → Testes → Security Audit → Build ─(push na main)→ Deploy
+```
+
+- O job `quality` roda em todo push/PR para `dev` e `main`; o job `deploy` só roda em push na `main`, **depois** de todo o pipeline passar, disparando o Deploy Hook do Render (secret `RENDER_DEPLOY_HOOK_URL`).
+- Build de produção com lazy loading por feature (cada rota vira um chunk próprio) e tree-shaking do esbuild.
+- Passo a passo completo do deploy (Render + Neon + Upstash), custos, domínio próprio e **processo de rollback**: ver [`DEPLOY.md`](DEPLOY.md).
+
+## Qualidade
+
+- **Cobertura de testes** (Vitest, `npm run test:ci`): ~94% de statements e ~89% de branches em 115 testes. Meta acordada: **manter statements ≥ 90%** — novas features entram com testes.
+- Revisão de engenharia (Fase 10): sem `any`/`eslint-disable`/`TODO` no `src/`, tipagem estrita, regras de negócio em serviços dedicados, componentes enxutos.
+- **Responsividade**: todas as telas funcionam em tablet/mobile (grids colapsam, barras quebram linha), mas a experiência prioritária é desktop — o treino depende de teclado físico.
 
 ## Segurança
 
