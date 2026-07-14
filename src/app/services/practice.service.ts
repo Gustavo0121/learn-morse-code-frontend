@@ -7,6 +7,13 @@ import { environment } from '../../environments/environment';
 export type ExerciseType = 'key_capture' | 'multiple_choice' | 'listening';
 
 /**
+ * Valor de `input_method` para captura por toque na tela (mobile). Não é uma
+ * tecla: o backend o aceita fora da whitelist `AllowedKey` (espelhado em
+ * `apps/practice/models.py`).
+ */
+export const TOUCH_INPUT_METHOD = 'Touch';
+
+/**
  * Payload de POST /api/practice/history — nomes de campo exatamente como no
  * contrato. `correct` nunca é enviado (calculado no backend). Para
  * `key_capture`, enviar `press_durations` + `input_method` e omitir
