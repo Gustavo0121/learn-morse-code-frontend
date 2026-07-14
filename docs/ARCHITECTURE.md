@@ -117,6 +117,7 @@ Checklist de hardening (Fase 8) aplicado e verificado:
 - **Formulários**: login/cadastro com `required` + `maxLength` (+ `email`); demais entradas são controles fechados (sliders, seleção restrita à whitelist de teclas do backend). A validação do cliente nunca substitui a do servidor.
 - **Dependências**: `npm audit` zerado. Dois advisories _low_ em tooling de dev foram resolvidos via `overrides` no `package.json` (`@babel/core 7.29.7`, `vite 7.3.6` — patches dentro da mesma série que o `@angular/build` fixa); remover os overrides quando o `@angular/build` atualizar esses pins.
 - **CI**: etapa **Security Audit** (`npm run audit:security`, gate em severidade `high`) roda entre os testes e o build.
+- **Analytics**: único script de terceiros é o Cloudflare Web Analytics (`index.html`) — sem cookies e sem coleta de dado pessoal (o token do beacon é público por design); rastreia navegações da SPA automaticamente.
 
 ## Design system
 
