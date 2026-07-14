@@ -4,6 +4,9 @@ import { Observable, Subject } from 'rxjs';
 import { MorseSettingsService } from './morse-settings.service';
 import { MorseSymbol, classifyPress } from './morse-timing';
 
+/** Origem do pressionamento — decide o `input_method` enviado ao backend. */
+export type MorsePressSource = 'keyboard' | 'touch';
+
 export interface MorsePressEvent {
   /**
    * Símbolo classificado com o mesmo limiar do backend; `null` quando a
@@ -12,14 +15,18 @@ export interface MorsePressEvent {
    */
   symbol: MorseSymbol | null;
   durationMs: number;
+  source: MorsePressSource;
 }
 
 const FALLBACK_KEY = 'Space';
 const FALLBACK_WPM = 20;
+/** Sentinela interna para a pressão por toque (nunca colide com `event.code`). */
+const TOUCH_CODE = '__touch__';
 
 /**
- * Captura de código Morse via teclado: mede a duração entre `keydown` e
- * `keyup` da tecla configurada e emite o símbolo classificado
+ * Captura de código Morse: mede a duração entre pressionar e soltar — a tecla
+ * configurada (`keydown`/`keyup`) ou a superfície de toque em telas touch
+ * (`beginTouchPress()`/`endTouchPress()`) — e emite o símbolo classificado
  * (`morse-timing.ts` — mesma fórmula baseada em `speed_wpm` que o backend
  * usa para validar `press_durations`).
  *
@@ -71,6 +78,30 @@ export class MorseInputService {
     return this.#presses.asObservable();
   }
 
+  /** Início de uma pressão por toque (tap pad). Ignorado fora da captura. */
+  beginTouchPress(): void {
+    if (!this.#capturing() || this.#pressStartMs !== null) {
+      return;
+    }
+    this.#pressStartMs = performance.now();
+    this.#activeCode = TOUCH_CODE;
+  }
+
+  /** Fim da pressão por toque: classifica e emite como as demais. */
+  endTouchPress(): void {
+    if (this.#pressStartMs === null || this.#activeCode !== TOUCH_CODE) {
+      return;
+    }
+    this.#emitPress(performance.now() - this.#pressStartMs, 'touch');
+  }
+
+  /** Toque interrompido (`pointercancel`): descarta, como no blur do teclado. */
+  cancelTouchPress(): void {
+    if (this.#activeCode === TOUCH_CODE) {
+      this.#resetPress();
+    }
+  }
+
   get #inputKey(): string {
     return this.#explicitKey ?? this.#settings.settings()?.input_key ?? FALLBACK_KEY;
   }
@@ -95,12 +126,14 @@ export class MorseInputService {
       return;
     }
     event.preventDefault();
-    const durationMs = performance.now() - this.#pressStartMs;
-    this.#resetPress();
-
-    const speedWpm = this.#settings.settings()?.speed_wpm ?? FALLBACK_WPM;
-    this.#presses.next({ symbol: classifyPress(durationMs, speedWpm), durationMs });
+    this.#emitPress(performance.now() - this.#pressStartMs, 'keyboard');
   };
+
+  #emitPress(durationMs: number, source: MorsePressSource): void {
+    this.#resetPress();
+    const speedWpm = this.#settings.settings()?.speed_wpm ?? FALLBACK_WPM;
+    this.#presses.next({ symbol: classifyPress(durationMs, speedWpm), durationMs, source });
+  }
 
   /** Janela perdeu o foco no meio da pressão: o keyup nunca virá — descarta. */
   readonly #onBlur = (): void => {

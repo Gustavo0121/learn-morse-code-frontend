@@ -50,4 +50,5 @@ Thumbs.db
 *.tsbuildinfo
 
 # Project docs kept out of version control
-CLAUDE.md
+DEPLOY.md
+REQUISITOS.md

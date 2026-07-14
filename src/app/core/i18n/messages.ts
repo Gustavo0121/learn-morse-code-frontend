@@ -29,6 +29,10 @@ export const MESSAGES = {
     pt: 'Pressione {key} — solte para encerrar o caractere.',
     en: 'Press {key} — release to end the character.',
   },
+  'common.tapPadHint': {
+    pt: 'Toque e segure para transmitir',
+    en: 'Tap and hold to transmit',
+  },
   'common.clickToListen': {
     pt: 'Clique em um caractere para ouvir o código.',
     en: 'Click a character to hear its code.',

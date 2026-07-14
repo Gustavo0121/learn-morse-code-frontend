@@ -9,10 +9,16 @@ import { MorseCharacter } from '../../services/morse-characters.service';
 import { MorseInputService, MorsePressEvent } from '../../services/morse-input.service';
 import { MorseSettingsService } from '../../services/morse-settings.service';
 import { WORD_GAP_UNITS, unitMs } from '../../services/morse-timing';
-import { PracticeAttempt, PracticeRecord, PracticeService } from '../../services/practice.service';
+import {
+  PracticeAttempt,
+  PracticeRecord,
+  PracticeService,
+  TOUCH_INPUT_METHOD,
+} from '../../services/practice.service';
 import { Button } from '../../shared/ui/button/button';
 import { Divider } from '../../shared/ui/divider/divider';
 import { Heading } from '../../shared/ui/heading/heading';
+import { TapPad } from '../../shared/ui/tap-pad/tap-pad';
 
 type TrainingMode = 'text_to_morse' | 'morse_to_text' | 'listening' | 'key_capture';
 
@@ -66,7 +72,7 @@ const MIN_SUBMIT_GAP_MS = 600;
  */
 @Component({
   selector: 'app-lesson-training',
-  imports: [RouterLink, Button, Divider, Heading],
+  imports: [RouterLink, Button, Divider, Heading, TapPad],
   templateUrl: './lesson-training.html',
   host: {
     class: 'flex flex-1 flex-col',
@@ -117,6 +123,8 @@ export class LessonTraining {
   });
 
   #pressDurations: number[] = [];
+  /** O passo usou a superfície de toque — envia `input_method: "Touch"`. */
+  #touchUsed = false;
   #pendingAttempt: PracticeAttempt | null = null;
   #gapTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -240,6 +248,7 @@ export class LessonTraining {
     this.submitError.set(false);
     this.#pendingAttempt = null;
     this.#pressDurations = [];
+    this.#touchUsed = false;
     this.symbols.set('');
     this.invalidPress.set(false);
     this.#stepStartedAt.set(performance.now());
@@ -267,6 +276,7 @@ export class LessonTraining {
     }
 
     this.invalidPress.set(false);
+    this.#touchUsed ||= press.source === 'touch';
     this.#pressDurations.push(press.durationMs);
     this.symbols.set(this.symbols() + press.symbol);
 
@@ -289,7 +299,7 @@ export class LessonTraining {
     }
     this.#submit({
       exercise_type: 'key_capture',
-      input_method: this.inputKeyLabel(),
+      input_method: this.#touchUsed ? TOUCH_INPUT_METHOD : this.inputKeyLabel(),
       question: step.question,
       expected_answer: step.expected,
       press_durations: [...this.#pressDurations],
