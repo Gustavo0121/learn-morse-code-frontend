@@ -28,7 +28,7 @@ Interface de aprendizado de código Morse com estética minimalista, construída
 - **Quatro modos de prática**: Key capture (transmita o código com a tecla configurada), Texto → Morse, Morse → Texto e Listening — com sessões por tempo ou por quantidade de caracteres.
 - **Trilha de lições** com treino guiado: estudo dos caracteres com áudio, exercícios nos quatro modos e resumo de desempenho.
 - **Áudio 100% no navegador**: velocidade (WPM), frequência, volume e tipo de onda configuráveis, com timing padrão PARIS.
-- **Captura via teclado** com tecla configurável e classificação ponto/traço idêntica à validação do backend.
+- **Captura via teclado ou toque na tela**: tecla configurável no desktop e superfície de toque no mobile, com classificação ponto/traço idêntica à validação do backend.
 - **Dashboard** com precisão, velocidade (cpm), tempo de treino e histórico recente.
 - **Conta de usuário** com preferências persistidas e sessão segura (access token em memória + cookie `httpOnly`).
 - **Interface PT/EN** com troca de idioma em runtime.

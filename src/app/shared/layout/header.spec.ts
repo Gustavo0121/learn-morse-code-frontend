@@ -2,7 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
-import { render, screen } from '@testing-library/angular';
+import { render, screen, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 
 import { AuthService } from '../../core/auth/auth.service';
@@ -69,6 +69,66 @@ describe('Header', () => {
 
     await user.click(screen.getByRole('button', { name: 'PT' }));
     expect(i18n.locale()).toBe('pt');
+  });
+
+  it('menu hambúrguer expõe os itens por extenso e fecha ao navegar', async () => {
+    const { http, auth, router, user } = await setup();
+    vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+    authenticate(http, auth);
+
+    const toggle = await screen.findByRole('button', { name: 'Menu' });
+    expect(screen.queryByRole('navigation', { name: 'Menu' })).not.toBeInTheDocument();
+
+    await user.click(toggle);
+
+    const menu = screen.getByRole('navigation', { name: 'Menu' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect(within(menu).getByRole('link', { name: 'Dashboard' })).toHaveAttribute(
+      'href',
+      '/dashboard',
+    );
+    expect(within(menu).getByRole('link', { name: 'Lessons' })).toHaveAttribute('href', '/lessons');
+    expect(within(menu).getByRole('link', { name: 'Practice' })).toHaveAttribute(
+      'href',
+      '/practice',
+    );
+    expect(within(menu).getByRole('link', { name: 'Settings' })).toHaveAttribute(
+      'href',
+      '/settings',
+    );
+    expect(within(menu).getByRole('button', { name: 'Sign out' })).toBeInTheDocument();
+
+    await user.click(within(menu).getByRole('link', { name: 'Practice' }));
+
+    expect(screen.queryByRole('navigation', { name: 'Menu' })).not.toBeInTheDocument();
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('Escape fecha o menu hambúrguer aberto', async () => {
+    const { http, auth, user } = await setup();
+    authenticate(http, auth);
+
+    await user.click(await screen.findByRole('button', { name: 'Menu' }));
+    expect(screen.getByRole('navigation', { name: 'Menu' })).toBeInTheDocument();
+
+    await user.keyboard('{Escape}');
+
+    expect(screen.queryByRole('navigation', { name: 'Menu' })).not.toBeInTheDocument();
+  });
+
+  it('sign out pelo menu hambúrguer encerra a sessão e fecha o painel', async () => {
+    const { http, auth, router, user } = await setup();
+    const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    authenticate(http, auth);
+
+    await user.click(await screen.findByRole('button', { name: 'Menu' }));
+    const menu = screen.getByRole('navigation', { name: 'Menu' });
+    await user.click(within(menu).getByRole('button', { name: 'Sign out' }));
+    http.expectOne('/api/auth/logout').flush(null, { status: 204, statusText: 'No Content' });
+
+    expect(auth.isAuthenticated()).toBe(false);
+    expect(navigate).toHaveBeenCalledWith(['/login']);
+    expect(screen.queryByRole('navigation', { name: 'Menu' })).not.toBeInTheDocument();
   });
 
   it('sign out encerra a sessão e redireciona para o login', async () => {

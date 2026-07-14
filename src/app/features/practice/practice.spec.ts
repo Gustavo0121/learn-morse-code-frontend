@@ -67,7 +67,7 @@ describe('Practice', () => {
     // Aguarda a tela de seleção de modos renderizar após os flushes.
     await screen.findByRole('button', { name: /key capture/i });
 
-    return { http, detectChanges };
+    return { http, detectChanges, container: view.container };
   }
 
   function press(durationMs: number): void {
@@ -115,6 +115,44 @@ describe('Practice', () => {
     expect(screen.getByText('Correto')).toBeVisible();
     expect(screen.getByText(/tempo de resposta: 1\.5s/i)).toBeVisible();
     expect(screen.getByText(/precisão: 100%/i)).toBeVisible();
+  });
+
+  it('key_capture por toque na tela envia input_method "Touch"', async () => {
+    const { http, detectChanges, container } = await setup();
+    useTimers();
+
+    fireEvent.click(screen.getByRole('button', { name: /key capture/i }));
+    const pad = container.querySelector('app-tap-pad') as HTMLElement;
+    expect(pad).not.toBeNull();
+
+    fireEvent.pointerDown(pad, { isPrimary: true });
+    now += 100;
+    fireEvent.pointerUp(pad); // "."
+    now += 200;
+    fireEvent.pointerDown(pad, { isPrimary: true });
+    now += 200;
+    fireEvent.pointerUp(pad); // "-"
+    detectChanges();
+    expect(screen.getByText('.-')).toBeVisible();
+
+    await vi.advanceTimersByTimeAsync(700); // gap de auto-envio
+
+    const post = http.expectOne('/api/practice/history');
+    expect(post.request.body).toEqual({
+      exercise_type: 'key_capture',
+      input_method: 'Touch',
+      question: 'A',
+      expected_answer: '.-',
+      press_durations: [100, 200],
+      response_time: 500,
+    });
+    post.flush(record({ exercise_type: 'key_capture', input_method: 'Touch' }), {
+      status: 201,
+      statusText: 'Created',
+    });
+    detectChanges();
+
+    expect(screen.getByText('Correto')).toBeVisible();
   });
 
   it('pressionamento longo demais é descartado com aviso e fica fora do envio', async () => {

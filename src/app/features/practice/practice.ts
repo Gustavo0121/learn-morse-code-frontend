@@ -7,10 +7,16 @@ import { MorseCharacter, MorseCharactersService } from '../../services/morse-cha
 import { MorseInputService, MorsePressEvent } from '../../services/morse-input.service';
 import { MorseSettingsService } from '../../services/morse-settings.service';
 import { WORD_GAP_UNITS, unitMs } from '../../services/morse-timing';
-import { PracticeAttempt, PracticeRecord, PracticeService } from '../../services/practice.service';
+import {
+  PracticeAttempt,
+  PracticeRecord,
+  PracticeService,
+  TOUCH_INPUT_METHOD,
+} from '../../services/practice.service';
 import { Button } from '../../shared/ui/button/button';
 import { Divider } from '../../shared/ui/divider/divider';
 import { Heading } from '../../shared/ui/heading/heading';
+import { TapPad } from '../../shared/ui/tap-pad/tap-pad';
 
 export type PracticeMode = 'key_capture' | 'text_to_morse' | 'morse_to_text' | 'listening';
 
@@ -81,7 +87,7 @@ const CLOCK_TICK_MS = 500;
 
 @Component({
   selector: 'app-practice',
-  imports: [Button, Divider, Heading],
+  imports: [Button, Divider, Heading, TapPad],
   templateUrl: './practice.html',
   host: {
     class: 'flex flex-1 flex-col',
@@ -166,6 +172,8 @@ export class Practice {
   });
 
   #pressDurations: number[] = [];
+  /** O round usou a superfície de toque — envia `input_method: "Touch"`. */
+  #touchUsed = false;
   #pendingAttempt: PracticeAttempt | null = null;
   #gapTimer: ReturnType<typeof setTimeout> | null = null;
   #clockTimer: ReturnType<typeof setInterval> | null = null;
@@ -264,6 +272,7 @@ export class Practice {
     this.submitError.set(false);
     this.#pendingAttempt = null;
     this.#pressDurations = [];
+    this.#touchUsed = false;
     this.symbols.set('');
     this.invalidPress.set(false);
 
@@ -412,6 +421,7 @@ export class Practice {
     }
 
     this.invalidPress.set(false);
+    this.#touchUsed ||= press.source === 'touch';
     this.#pressDurations.push(press.durationMs);
     this.symbols.set(this.symbols() + press.symbol);
 
@@ -434,7 +444,7 @@ export class Practice {
     }
     this.#submit({
       exercise_type: 'key_capture',
-      input_method: this.inputKeyLabel(),
+      input_method: this.#touchUsed ? TOUCH_INPUT_METHOD : this.inputKeyLabel(),
       question: round.question,
       expected_answer: round.expected,
       press_durations: [...this.#pressDurations],

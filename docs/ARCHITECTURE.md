@@ -48,7 +48,8 @@ src/app/
 
 ## Captura de entrada Morse (`MorseInputService`)
 
-- `startCapture()`/`stopCapture()` registram os listeners de `keydown`/`keyup` da tecla configurada (das preferências; `setInputKey()` sobrepõe em tempo de execução) e `onSymbolDetected()` emite cada pressionamento com duração e símbolo.
+- `startCapture()`/`stopCapture()` registram os listeners de `keydown`/`keyup` da tecla configurada (das preferências; `setInputKey()` sobrepõe em tempo de execução) e `onSymbolDetected()` emite cada pressionamento com duração, símbolo e origem (`keyboard`/`touch`).
+- **Toque na tela (mobile)**: `beginTouchPress()`/`endTouchPress()`/`cancelTouchPress()` medem a pressão por toque com o mesmo relógio e a mesma classificação do teclado. O componente `app-tap-pad` (`shared/ui/tap-pad`) expõe essa superfície via Pointer Events (`touch-none`, pointer capture, `pointercancel` descarta) e só é renderizado em dispositivos de ponteiro grosseiro (variante `pointer-coarse:` do Tailwind).
 - A classificação usa **exatamente a regra do backend** (`morse-timing.ts` ⇄ `apps/practice/services.py`): ponto abaixo de 2 unidades (`1200/speed_wpm` ms), traço a partir daí, e `symbol: null` quando a duração sai da faixa `0 < d < 6 unidades` que o servidor aceita — a UI sinaliza entrada inválida em vez de divergir da validação do backend.
 - Robustez: ignora auto-repeat da tecla segurada, ignora outras teclas, faz `preventDefault` só na tecla de captura (Space não rola a página) e descarta pressões interrompidas por perda de foco da janela.
 
@@ -74,6 +75,7 @@ src/app/
 - Tela de treino em layout de foco: modo, progresso (`N/meta` na sessão por caracteres), tempo (`mm:ss`, regressivo na sessão por tempo; o relógio só dispara no primeiro input do usuário) e precisão no topo; caractere/código em destaque no centro.
 - No key_capture, os símbolos aparecem conforme a captura (`.-`); uma pausa (gap de palavra, mínimo 600 ms) encerra o caractere e envia automaticamente. Pressionamentos fora da faixa aceita pelo backend são descartados com aviso — nunca entram no envio.
 - Envio para `POST /api/practice/history` com os campos exatos do contrato: key_capture manda `press_durations` + `input_method` (o backend reclassifica e deriva `user_answer`); os demais mandam `user_answer`; `correct` nunca é enviado. Erro de rede oferece retry com o mesmo payload.
+- Quando o round usou a superfície de toque, `input_method` vai como o literal `"Touch"` (aceito pelo backend fora da whitelist `AllowedKey`); pelo teclado, vai a tecla configurada.
 - Feedback de acerto/erro com resposta esperada, resposta dada e tempo de reação.
 
 ## Dashboard (`/dashboard`)
@@ -102,7 +104,7 @@ Commit → Lint → Formatação → Testes → Security Audit → Build ─(pus
 
 - **Cobertura de testes** (Vitest, `npm run test:ci`): ~94% de statements e ~89% de branches em 115 testes. Meta acordada: **manter statements ≥ 90%** — novas features entram com testes.
 - Revisão de engenharia (Fase 10): sem `any`/`eslint-disable`/`TODO` no `src/`, tipagem estrita, regras de negócio em serviços dedicados, componentes enxutos.
-- **Responsividade**: todas as telas funcionam em tablet/mobile (grids colapsam, barras quebram linha), mas a experiência prioritária é desktop — o treino depende de teclado físico.
+- **Responsividade**: todas as telas funcionam em tablet/mobile (grids colapsam, barras quebram linha); no mobile o treino de key capture usa a superfície de toque (`app-tap-pad`) e o header colapsa a navegação em um **menu hambúrguer** (< `sm`) com os itens por extenso — no desktop permanecem os ícones. A experiência prioritária segue sendo desktop.
 
 ## Segurança
 

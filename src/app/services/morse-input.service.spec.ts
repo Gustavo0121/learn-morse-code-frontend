@@ -56,8 +56,8 @@ describe('MorseInputService', () => {
     press('Space', 200);
 
     expect(events).toEqual([
-      { symbol: '.', durationMs: 100 },
-      { symbol: '-', durationMs: 200 },
+      { symbol: '.', durationMs: 100, source: 'keyboard' },
+      { symbol: '-', durationMs: 200, source: 'keyboard' },
     ]);
   });
 
@@ -66,7 +66,7 @@ describe('MorseInputService', () => {
 
     press('Space', 400); // ≥ 360 ms seria rejeitado pelo servidor a 20 WPM
 
-    expect(events).toEqual([{ symbol: null, durationMs: 400 }]);
+    expect(events).toEqual([{ symbol: null, durationMs: 400, source: 'keyboard' }]);
   });
 
   it('reclassifica com o limiar do novo speed_wpm quando as preferências mudam', () => {
@@ -102,7 +102,7 @@ describe('MorseInputService', () => {
     now += 80;
     window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space', cancelable: true }));
 
-    expect(events).toEqual([{ symbol: '-', durationMs: 160 }]);
+    expect(events).toEqual([{ symbol: '-', durationMs: 160, source: 'keyboard' }]);
   });
 
   it('só captura entre startCapture e stopCapture', () => {
@@ -160,5 +160,58 @@ describe('MorseInputService', () => {
     expect(service.capturing()).toBe(true);
     service.stopCapture();
     expect(service.capturing()).toBe(false);
+  });
+
+  // ------------------------------------------------------- captura por toque
+
+  function touchPress(durationMs: number): void {
+    service.beginTouchPress();
+    now += durationMs;
+    service.endTouchPress();
+  }
+
+  it('classifica pressões por toque com o mesmo limiar do teclado', () => {
+    service.startCapture();
+
+    touchPress(100);
+    touchPress(200);
+
+    expect(events).toEqual([
+      { symbol: '.', durationMs: 100, source: 'touch' },
+      { symbol: '-', durationMs: 200, source: 'touch' },
+    ]);
+  });
+
+  it('ignora toques fora da captura', () => {
+    touchPress(100);
+
+    expect(events).toEqual([]);
+  });
+
+  it('cancelTouchPress descarta a pressão em andamento', () => {
+    service.startCapture();
+
+    service.beginTouchPress();
+    now += 100;
+    service.cancelTouchPress();
+    service.endTouchPress();
+
+    expect(events).toEqual([]);
+  });
+
+  it('toque e teclado não se sobrepõem na mesma pressão', () => {
+    service.startCapture();
+
+    // Tecla pressionada no meio de um toque não inicia outra medição.
+    service.beginTouchPress();
+    now += 50;
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space', cancelable: true }));
+    now += 50;
+    service.endTouchPress();
+
+    // O keyup órfão (pressão iniciada pelo toque) não emite nada.
+    window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space', cancelable: true }));
+
+    expect(events).toEqual([{ symbol: '.', durationMs: 100, source: 'touch' }]);
   });
 });
