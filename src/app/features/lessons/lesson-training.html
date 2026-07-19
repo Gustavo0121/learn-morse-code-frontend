@@ -102,21 +102,7 @@
 
             @switch (step.mode) {
               @case ('key_capture') {
-                <p class="font-display text-7xl font-extrabold uppercase text-ink">
-                  {{ step.question }}
-                </p>
-                <p class="min-h-8 font-display text-3xl font-extrabold tracking-widest text-ink">
-                  {{ symbols() || ' ' }}
-                </p>
-                @if (invalidPress()) {
-                  <p class="text-sm text-error" role="alert">
-                    {{ i18n.t('common.invalidPress', { key: inputKeyLabel() }) }}
-                  </p>
-                }
-                <p class="text-sm text-ink-muted pointer-coarse:hidden">
-                  {{ i18n.t('common.pressHint', { key: inputKeyLabel() }) }}
-                </p>
-                <app-tap-pad />
+                <app-key-capture [question]="step.question" />
               }
               @case ('text_to_morse') {
                 <p class="font-display text-7xl font-extrabold uppercase text-ink">

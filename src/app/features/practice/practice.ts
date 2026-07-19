@@ -2,21 +2,15 @@ import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 
 import { I18nService } from '../../core/i18n/i18n.service';
 import { MessageKey } from '../../core/i18n/messages';
+import { KeyCaptureResult, KeyCaptureService } from '../../services/key-capture.service';
 import { MorseAudioService, MorsePlaybackSettings } from '../../services/morse-audio.service';
 import { MorseCharacter, MorseCharactersService } from '../../services/morse-characters.service';
-import { MorseInputService, MorsePressEvent } from '../../services/morse-input.service';
 import { MorseSettingsService } from '../../services/morse-settings.service';
-import { WORD_GAP_UNITS, unitMs } from '../../services/morse-timing';
-import {
-  PracticeAttempt,
-  PracticeRecord,
-  PracticeService,
-  TOUCH_INPUT_METHOD,
-} from '../../services/practice.service';
+import { PracticeAttempt, PracticeRecord, PracticeService } from '../../services/practice.service';
 import { Button } from '../../shared/ui/button/button';
 import { Divider } from '../../shared/ui/divider/divider';
 import { Heading } from '../../shared/ui/heading/heading';
-import { TapPad } from '../../shared/ui/tap-pad/tap-pad';
+import { KeyCapture } from '../../shared/ui/key-capture/key-capture';
 
 export type PracticeMode = 'key_capture' | 'text_to_morse' | 'morse_to_text' | 'listening';
 
@@ -79,15 +73,12 @@ const DEFAULT_PLAYBACK: MorsePlaybackSettings = {
   wave_type: 'sine',
 };
 
-const FALLBACK_KEY = 'Space';
-const FALLBACK_WPM = 20;
-/** Piso do gap de auto-envio, para velocidades altas não engolirem a pausa. */
-const MIN_SUBMIT_GAP_MS = 600;
 const CLOCK_TICK_MS = 500;
 
 @Component({
   selector: 'app-practice',
-  imports: [Button, Divider, Heading, TapPad],
+  imports: [Button, Divider, Heading, KeyCapture],
+  providers: [KeyCaptureService],
   templateUrl: './practice.html',
   host: {
     class: 'flex flex-1 flex-col',
@@ -98,7 +89,7 @@ export class Practice {
   readonly #charactersService = inject(MorseCharactersService);
   readonly #settings = inject(MorseSettingsService);
   readonly #audio = inject(MorseAudioService);
-  readonly #input = inject(MorseInputService);
+  readonly #capture = inject(KeyCaptureService);
   readonly #practice = inject(PracticeService);
   readonly #destroyRef = inject(DestroyRef);
   protected readonly i18n = inject(I18nService);
@@ -139,10 +130,6 @@ export class Practice {
     return filtered.length > 0 ? filtered : characters;
   });
 
-  /** Símbolos já capturados no round de key_capture (ex.: ".-"). */
-  protected readonly symbols = signal('');
-  protected readonly invalidPress = signal(false);
-
   protected readonly result = signal<PracticeRecord | null>(null);
   protected readonly submitting = signal(false);
   protected readonly submitError = signal(false);
@@ -171,22 +158,23 @@ export class Practice {
     return info ? this.i18n.t(info.title) : '';
   });
 
-  #pressDurations: number[] = [];
-  /** O round usou a superfície de toque — envia `input_method: "Touch"`. */
-  #touchUsed = false;
   #pendingAttempt: PracticeAttempt | null = null;
-  #gapTimer: ReturnType<typeof setTimeout> | null = null;
   #clockTimer: ReturnType<typeof setInterval> | null = null;
   #sessionStartedAt = 0;
 
   constructor() {
     this.loadCharacters();
-    const subscription = this.#input
-      .onSymbolDetected()
-      .subscribe((press) => this.#handlePress(press));
+    // O relógio da sessão começa em qualquer press, inclusive os inválidos.
+    const pressSubscription = this.#capture
+      .onPress()
+      .subscribe(() => this.#startClockOnFirstInput());
+    const captureSubscription = this.#capture
+      .onCapture()
+      .subscribe((result) => this.#submitKeyCapture(result));
     this.#destroyRef.onDestroy(() => {
-      subscription.unsubscribe();
-      this.#teardownRound();
+      pressSubscription.unsubscribe();
+      captureSubscription.unsubscribe();
+      this.#capture.stop();
       this.#stopClock();
     });
   }
@@ -206,7 +194,7 @@ export class Practice {
   }
 
   protected changeMode(): void {
-    this.#teardownRound();
+    this.#capture.stop();
     this.#stopClock();
     this.mode.set(null);
     this.round.set(null);
@@ -267,14 +255,10 @@ export class Practice {
       return;
     }
 
-    this.#teardownRound();
+    this.#capture.stop();
     this.result.set(null);
     this.submitError.set(false);
     this.#pendingAttempt = null;
-    this.#pressDurations = [];
-    this.#touchUsed = false;
-    this.symbols.set('');
-    this.invalidPress.set(false);
 
     const character = pool[Math.floor(Math.random() * pool.length)];
     this.round.set({
@@ -288,7 +272,7 @@ export class Practice {
     });
 
     if (mode === 'key_capture') {
-      this.#input.startCapture();
+      this.#capture.start();
     }
   }
 
@@ -337,10 +321,6 @@ export class Practice {
     if (this.#pendingAttempt) {
       this.#submit(this.#pendingAttempt);
     }
-  }
-
-  protected inputKeyLabel(): string {
-    return this.#settings.settings()?.input_key ?? FALLBACK_KEY;
   }
 
   /** Relógio do topo: regressivo na sessão por tempo, corrido na por caracteres. */
@@ -397,7 +377,7 @@ export class Practice {
   }
 
   #finishSession(): void {
-    this.#teardownRound();
+    this.#capture.stop();
     this.#stopClock();
     this.round.set(null);
     this.result.set(null);
@@ -406,54 +386,23 @@ export class Practice {
     this.finished.set(true);
   }
 
-  #handlePress(press: MorsePressEvent): void {
+  /** Pausa de auto-envio detectada pelo `KeyCaptureService`: fecha o attempt. */
+  #submitKeyCapture(result: KeyCaptureResult): void {
     const round = this.round();
-    if (this.mode() !== 'key_capture' || !round || this.result() || this.submitting()) {
-      return;
-    }
-
-    this.#startClockOnFirstInput();
-
-    if (press.symbol === null) {
-      // O backend rejeitaria essa duração para o speed_wpm atual: descarta e avisa.
-      this.invalidPress.set(true);
-      return;
-    }
-
-    this.invalidPress.set(false);
-    this.#touchUsed ||= press.source === 'touch';
-    this.#pressDurations.push(press.durationMs);
-    this.symbols.set(this.symbols() + press.symbol);
-
-    if (this.#gapTimer !== null) {
-      clearTimeout(this.#gapTimer);
-    }
-    this.#gapTimer = setTimeout(() => this.#submitKeyCapture(), this.#submitGapMs());
-  }
-
-  /** Pausa sem novos símbolos que encerra o caractere (gap de palavra, com piso). */
-  #submitGapMs(): number {
-    const speedWpm = this.#settings.settings()?.speed_wpm ?? FALLBACK_WPM;
-    return Math.max(MIN_SUBMIT_GAP_MS, WORD_GAP_UNITS * unitMs(speedWpm));
-  }
-
-  #submitKeyCapture(): void {
-    const round = this.round();
-    if (!round || this.#pressDurations.length === 0) {
+    if (!round) {
       return;
     }
     this.#submit({
       exercise_type: 'key_capture',
-      input_method: this.#touchUsed ? TOUCH_INPUT_METHOD : this.inputKeyLabel(),
+      ...result,
       question: round.question,
       expected_answer: round.expected,
-      press_durations: [...this.#pressDurations],
       response_time: this.#responseTime(round),
     });
   }
 
   #submit(attempt: PracticeAttempt): void {
-    this.#teardownRound();
+    this.#capture.stop();
     this.#pendingAttempt = attempt;
     this.submitting.set(true);
     this.submitError.set(false);
@@ -515,13 +464,5 @@ export class Practice {
       [result[i], result[j]] = [result[j], result[i]];
     }
     return result;
-  }
-
-  #teardownRound(): void {
-    this.#input.stopCapture();
-    if (this.#gapTimer !== null) {
-      clearTimeout(this.#gapTimer);
-      this.#gapTimer = null;
-    }
   }
 }
