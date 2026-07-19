@@ -9,10 +9,10 @@
         Try again
       </button>
     </div>
-  } @else if (!characters()) {
+  } @else if (!session.characters()) {
     <app-heading text="Practice" />
     <p class="mt-8 text-sm text-ink-muted">{{ i18n.t('practice.loading') }}</p>
-  } @else if (!mode()) {
+  } @else if (!session.mode()) {
     <app-heading text="Practice" />
     <app-divider class="mt-10 mb-8" label="Modes" />
     <div class="grid gap-4 md:grid-cols-2">
@@ -20,7 +20,7 @@
         <button
           class="group cursor-pointer border border-line px-6 py-6 text-left transition-colors hover:border-ink"
           type="button"
-          (click)="selectMode(info.id)"
+          (click)="session.selectMode(info.id)"
         >
           <span class="block font-display text-lg font-extrabold uppercase tracking-tight text-ink">
             {{ i18n.t(info.title) }}
@@ -38,25 +38,25 @@
       <div class="flex items-center rounded-lg border border-line px-2 py-1">
         <button
           class="cursor-pointer rounded-md px-3 py-1.5 uppercase transition-colors"
-          [class.bg-ink]="includePunctuation()"
-          [class.text-canvas]="includePunctuation()"
-          [class.text-ink-muted]="!includePunctuation()"
-          [class.hover:text-ink]="!includePunctuation()"
+          [class.bg-ink]="session.includePunctuation()"
+          [class.text-canvas]="session.includePunctuation()"
+          [class.text-ink-muted]="!session.includePunctuation()"
+          [class.hover:text-ink]="!session.includePunctuation()"
           type="button"
-          [attr.aria-pressed]="includePunctuation()"
-          (click)="togglePunctuation()"
+          [attr.aria-pressed]="session.includePunctuation()"
+          (click)="session.togglePunctuation()"
         >
           Punctuation
         </button>
         <button
           class="cursor-pointer rounded-md px-3 py-1.5 uppercase transition-colors"
-          [class.bg-ink]="includeNumbers()"
-          [class.text-canvas]="includeNumbers()"
-          [class.text-ink-muted]="!includeNumbers()"
-          [class.hover:text-ink]="!includeNumbers()"
+          [class.bg-ink]="session.includeNumbers()"
+          [class.text-canvas]="session.includeNumbers()"
+          [class.text-ink-muted]="!session.includeNumbers()"
+          [class.hover:text-ink]="!session.includeNumbers()"
           type="button"
-          [attr.aria-pressed]="includeNumbers()"
-          (click)="toggleNumbers()"
+          [attr.aria-pressed]="session.includeNumbers()"
+          (click)="session.toggleNumbers()"
         >
           Numbers
         </button>
@@ -65,41 +65,41 @@
       <div class="flex items-center rounded-lg border border-line px-2 py-1">
         <button
           class="cursor-pointer rounded-md px-3 py-1.5 uppercase transition-colors"
-          [class.bg-ink]="sessionKind() === 'time'"
-          [class.text-canvas]="sessionKind() === 'time'"
-          [class.text-ink-muted]="sessionKind() !== 'time'"
-          [class.hover:text-ink]="sessionKind() !== 'time'"
+          [class.bg-ink]="session.sessionKind() === 'time'"
+          [class.text-canvas]="session.sessionKind() === 'time'"
+          [class.text-ink-muted]="session.sessionKind() !== 'time'"
+          [class.hover:text-ink]="session.sessionKind() !== 'time'"
           type="button"
-          [attr.aria-pressed]="sessionKind() === 'time'"
-          (click)="setSessionKind('time')"
+          [attr.aria-pressed]="session.sessionKind() === 'time'"
+          (click)="session.setSessionKind('time')"
         >
           Time
         </button>
         <button
           class="cursor-pointer rounded-md px-3 py-1.5 uppercase transition-colors"
-          [class.bg-ink]="sessionKind() === 'characters'"
-          [class.text-canvas]="sessionKind() === 'characters'"
-          [class.text-ink-muted]="sessionKind() !== 'characters'"
-          [class.hover:text-ink]="sessionKind() !== 'characters'"
+          [class.bg-ink]="session.sessionKind() === 'characters'"
+          [class.text-canvas]="session.sessionKind() === 'characters'"
+          [class.text-ink-muted]="session.sessionKind() !== 'characters'"
+          [class.hover:text-ink]="session.sessionKind() !== 'characters'"
           type="button"
-          [attr.aria-pressed]="sessionKind() === 'characters'"
-          (click)="setSessionKind('characters')"
+          [attr.aria-pressed]="session.sessionKind() === 'characters'"
+          (click)="session.setSessionKind('characters')"
         >
           Characters
         </button>
       </div>
 
       <div class="flex items-center rounded-lg border border-line px-2 py-1">
-        @for (value of sessionValues(); track value) {
+        @for (value of session.sessionValues(); track value) {
           <button
             class="cursor-pointer rounded-md px-3 py-1.5 transition-colors"
-            [class.bg-ink]="sessionGoal() === value"
-            [class.text-canvas]="sessionGoal() === value"
-            [class.text-ink-muted]="sessionGoal() !== value"
-            [class.hover:text-ink]="sessionGoal() !== value"
+            [class.bg-ink]="session.sessionGoal() === value"
+            [class.text-canvas]="session.sessionGoal() === value"
+            [class.text-ink-muted]="session.sessionGoal() !== value"
+            [class.hover:text-ink]="session.sessionGoal() !== value"
             type="button"
-            [attr.aria-pressed]="sessionGoal() === value"
-            (click)="setSessionGoal(value)"
+            [attr.aria-pressed]="session.sessionGoal() === value"
+            (click)="session.setSessionGoal(value)"
           >
             {{ value }}
           </button>
@@ -112,17 +112,18 @@
     >
       <span>{{ modeTitle() }}</span>
       <span class="flex flex-wrap items-center gap-x-8 gap-y-2">
-        @if (sessionKind() === 'characters') {
-          <span>{{ sessionTotal() }}/{{ sessionGoal() }}</span>
+        @if (session.sessionKind() === 'characters') {
+          <span>{{ session.sessionTotal() }}/{{ session.sessionGoal() }}</span>
         }
         <span>{{ i18n.t('common.time') }}: {{ clock() }}</span>
         <span
-          >{{ i18n.t('common.accuracy') }}: {{ accuracy() !== null ? accuracy() + '%' : '—' }}</span
+          >{{ i18n.t('common.accuracy') }}:
+          {{ session.accuracy() !== null ? session.accuracy() + '%' : '—' }}</span
         >
         <button
           class="cursor-pointer uppercase text-ink-muted transition-colors hover:text-ink"
           type="button"
-          (click)="changeMode()"
+          (click)="session.exitMode()"
         >
           Change mode
         </button>
@@ -131,14 +132,14 @@
 
     <app-divider class="mt-4 mb-8" />
 
-    @if (finished()) {
+    @if (session.finished()) {
       <section class="flex flex-1 flex-col items-center justify-center gap-10 text-center">
         <div>
           <p class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
             {{ i18n.t('practice.sessionDone') }}
           </p>
           <p class="mt-4 font-display text-7xl font-extrabold tracking-tight text-ink">
-            {{ accuracy() !== null ? accuracy() + '%' : '—' }}
+            {{ session.accuracy() !== null ? session.accuracy() + '%' : '—' }}
           </p>
           <p
             class="mt-2 font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted"
@@ -177,7 +178,7 @@
               {{ i18n.t('dashboard.statCorrect') }}
             </dt>
             <dd class="mt-2 font-display text-xl font-extrabold tracking-tight text-ink">
-              {{ sessionCorrect() }}/{{ sessionTotal() }}
+              {{ session.sessionCorrect() }}/{{ session.sessionTotal() }}
             </dd>
           </div>
           <div>
@@ -191,15 +192,15 @@
         </dl>
 
         <div class="mt-2 flex items-center gap-6">
-          <button app-button type="button" title="Enter" (click)="restartSession()">
+          <button app-button type="button" title="Enter" (click)="session.restart()">
             Restart <span class="ml-2" aria-hidden="true">↵</span>
           </button>
-          <button app-button variant="outline" type="button" (click)="changeMode()">
+          <button app-button variant="outline" type="button" (click)="session.exitMode()">
             Change mode
           </button>
         </div>
       </section>
-    } @else if (result(); as result) {
+    } @else if (session.result(); as result) {
       <section class="flex flex-1 flex-col items-center justify-center gap-6 text-center">
         @if (result.correct) {
           <p class="font-display text-4xl font-extrabold uppercase tracking-tight text-ink">
@@ -220,14 +221,14 @@
           {{ i18n.t('practice.responseTime') }} {{ (result.response_time / 1000).toFixed(1) }}s
         </p>
         <div class="mt-4 flex items-center gap-6">
-          <button app-button type="button" title="Enter" (click)="startRound()">
+          <button app-button type="button" title="Enter" (click)="session.nextRound()">
             Next <span class="ml-2" aria-hidden="true">↵</span>
           </button>
         </div>
       </section>
-    } @else if (round(); as round) {
+    } @else if (session.round(); as round) {
       <section class="flex flex-1 flex-col items-center justify-center gap-8 text-center">
-        @switch (mode()) {
+        @switch (session.mode()) {
           @case ('key_capture') {
             <p class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
               {{ i18n.t('practice.currentCode') }}
@@ -267,10 +268,12 @@
                 class="min-w-20 cursor-pointer border border-line px-6 py-4 font-display text-xl font-extrabold text-ink transition-colors hover:border-ink"
                 type="button"
                 [class]="
-                  mode() === 'text_to_morse' ? 'tracking-[0.4em] pl-[calc(1.5rem+0.4em)]' : ''
+                  session.mode() === 'text_to_morse'
+                    ? 'tracking-[0.4em] pl-[calc(1.5rem+0.4em)]'
+                    : ''
                 "
-                [disabled]="submitting()"
-                (click)="answer(option)"
+                [disabled]="session.submitting()"
+                (click)="session.answer(option)"
               >
                 {{ option }}
               </button>
@@ -278,12 +281,12 @@
           </div>
         }
 
-        @if (submitError()) {
+        @if (session.submitError()) {
           <p class="text-sm text-error" role="alert">{{ i18n.t('common.submitError') }}</p>
-          <button app-button variant="outline" type="button" (click)="retrySubmit()">
+          <button app-button variant="outline" type="button" (click)="session.retrySubmit()">
             Try again
           </button>
-        } @else if (submitting()) {
+        } @else if (session.submitting()) {
           <p class="text-sm text-ink-muted">{{ i18n.t('common.submitting') }}</p>
         }
       </section>
