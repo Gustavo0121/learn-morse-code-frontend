@@ -53,6 +53,13 @@ src/app/
 - A classificação usa **exatamente a regra do backend** (`morse-timing.ts` ⇄ `apps/practice/services.py`): ponto abaixo de 2 unidades (`1200/speed_wpm` ms), traço a partir daí, e `symbol: null` quando a duração sai da faixa `0 < d < 6 unidades` que o servidor aceita — a UI sinaliza entrada inválida em vez de divergir da validação do backend.
 - Robustez: ignora auto-repeat da tecla segurada, ignora outras teclas, faz `preventDefault` só na tecla de captura (Space não rola a página) e descarta pressões interrompidas por perda de foco da janela.
 
+### Fluxo de key_capture compartilhado (`KeyCaptureService` + `app-key-capture`)
+
+- O fluxo do exercício de key_capture é **único** para a prática livre e o treino guiado: `services/key-capture.service.ts` acumula os pressionamentos do `MorseInputService` enquanto ativo (`start()`/`stop()`), expõe os signals `symbols`/`invalidPress`, e após a pausa de auto-envio (gap de palavra, mínimo 600 ms) emite `onCapture()` com `press_durations` + `input_method` (tecla configurada ou `"Touch"`).
+- O serviço **não é root**: cada feature o provê no próprio componente (uma instância por tela) e arma/desarma a captura no ciclo do round; `question`/`expected_answer`/`response_time` e o envio (`PracticeService.submit`) continuam com a feature.
+- O bloco visual (`shared/ui/key-capture`, seletor `app-key-capture`) renderiza caractere alvo, símbolos capturados, aviso de pressão inválida, dica da tecla e o `app-tap-pad`; usa `display: contents` para os filhos participarem do layout flex da tela hospedeira.
+- `onPress()` notifica todo pressionamento enquanto ativo (inclusive inválidos) — é o gancho que a prática usa para disparar o relógio da sessão no primeiro input.
+
 ## Lições
 
 - `/lessons` lista a trilha (`GET /api/lessons`, já ordenada por `order`) com número, título, descrição e nível; estados de carregamento, erro (com retry) e vazio.
