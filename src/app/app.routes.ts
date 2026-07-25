@@ -17,6 +17,18 @@ export const routes: Routes = [
     loadComponent: () => import('./features/translate/translate').then((m) => m.Translate),
   },
   {
+    path: 'terms',
+    loadComponent: () => import('./features/terms/terms').then((m) => m.Terms),
+  },
+  {
+    path: 'privacy',
+    loadComponent: () => import('./features/privacy/privacy').then((m) => m.Privacy),
+  },
+  {
+    path: 'security',
+    loadComponent: () => import('./features/security/security').then((m) => m.Security),
+  },
+  {
     // Área autenticada: lessons, practice e settings entram aqui nas Fases 2/5/6.
     path: '',
     canActivate: [authGuard],

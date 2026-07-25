@@ -105,6 +105,13 @@ src/app/
 - Tradução em runtime via `I18nService` (`core/i18n/`): `t(chave, params?)` lê o signal `locale`, então bindings e computeds que o chamam reagem à troca de idioma sem reload.
 - Dicionário tipado em `core/i18n/messages.ts` (`MessageKey` é união literal — chave inexistente não compila). O locale `pt` corresponde à UI original; rótulos editoriais em inglês do design (headings, "Sign in", "Next", barras da prática) são iguais nos dois idiomas e ficam fora do dicionário.
 
+## Footer institucional (`/terms`, `/privacy`, `/security`)
+
+- `shared/layout/footer.ts` (não `shared/ui/`): peça única do shell renderizada em `app.html` junto do `Header`, presente em todas as rotas (públicas e autenticadas). `shared/ui/` fica reservado a átomos reutilizáveis em várias telas (`button`, `divider`, `heading`, ...).
+- Links com texto descritivo (ao contrário do header, que usa ícones): GitHub (externo, `rel="noopener noreferrer"`), contato (`mailto:`), termos, privacidade e segurança — todos traduzidos via `I18nService.t()` (chaves `footer.*` em `messages.ts`).
+- `/terms` e `/privacy` são rotas públicas com conteúdo mínimo e honesto (não é texto jurídico revisado) — final fica para issue separada.
+- `/security` resume o `SECURITY.md` do repositório e linka para a política completa em `.../security/policy` no GitHub.
+
 ## CI/CD e deploy
 
 ```
