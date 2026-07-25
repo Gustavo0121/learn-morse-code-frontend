@@ -65,6 +65,13 @@ import { I18nService } from '../../core/i18n/i18n.service';
           </button>
         </span>
 
+        <a
+          class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted transition-colors hover:text-ink"
+          routerLink="/translate"
+        >
+          Translate
+        </a>
+
         @if (authenticated()) {
           <span class="hidden items-center gap-7 sm:flex">
             <a

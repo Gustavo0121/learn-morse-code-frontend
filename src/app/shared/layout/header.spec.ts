@@ -35,17 +35,19 @@ describe('Header', () => {
     expect(brand).toHaveTextContent('Learn Morse Code');
   });
 
-  it('sem sessão, oferece apenas o link de sign in', async () => {
+  it('sem sessão, oferece translate e sign in', async () => {
     await setup();
 
+    expect(screen.getByRole('link', { name: /translate/i })).toHaveAttribute('href', '/translate');
     expect(screen.getByRole('link', { name: /sign in/i })).toHaveAttribute('href', '/login');
     expect(screen.queryByRole('button', { name: /sign out/i })).not.toBeInTheDocument();
   });
 
-  it('com sessão, oferece dashboard, lessons, settings e sign out', async () => {
+  it('com sessão, oferece translate, dashboard, lessons, settings e sign out', async () => {
     const { http, auth } = await setup();
     authenticate(http, auth);
 
+    expect(screen.getByRole('link', { name: /translate/i })).toHaveAttribute('href', '/translate');
     expect(await screen.findByRole('link', { name: /dashboard/i })).toHaveAttribute(
       'href',
       '/dashboard',

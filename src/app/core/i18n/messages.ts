@@ -202,6 +202,32 @@ export const MESSAGES = {
   'practice.session': { pt: 'Sessão', en: 'Session' },
   'practice.speed': { pt: 'Velocidade', en: 'Speed' },
   'practice.responseTime': { pt: 'Tempo de resposta:', en: 'Response time:' },
+
+  // Tradutor
+  'translate.intro': {
+    pt: 'Traduza texto para código Morse ou o contrário — em tempo real, sem precisar entrar na conta.',
+    en: 'Translate text to Morse code or the other way around — live, no account needed.',
+  },
+  'translate.textPlaceholder': { pt: 'Digite o texto aqui…', en: 'Type text here…' },
+  'translate.morsePlaceholder': {
+    pt: 'Digite Morse aqui (. e -, / entre palavras)…',
+    en: 'Type Morse here (. and -, / between words)…',
+  },
+  'translate.unsupportedWarning': {
+    pt: 'Sem código Morse (marcado com #): {chars}',
+    en: 'No Morse code (marked with #): {chars}',
+  },
+  'translate.invalidWarning': {
+    pt: 'Sequência inválida (marcada com ?): {tokens}',
+    en: 'Invalid sequence (marked with ?): {tokens}',
+  },
+  'translate.copy': { pt: 'Copiar', en: 'Copy' },
+  'translate.copied': { pt: 'Copiado!', en: 'Copied!' },
+  'translate.listenAria': { pt: 'Ouvir a sequência Morse', en: 'Listen to the Morse sequence' },
+  'translate.cta': {
+    pt: 'Crie uma conta para treinar no seu ritmo e acompanhar seu progresso.',
+    en: 'Create an account to train at your own pace and track your progress.',
+  },
 } satisfies Record<string, Record<Locale, string>>;
 
 export type MessageKey = keyof typeof MESSAGES;
