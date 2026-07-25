@@ -1,0 +1,85 @@
+<main class="flex flex-1 flex-col justify-center py-16">
+  <app-heading text="Translate" />
+  <p class="mt-4 max-w-xl text-sm leading-relaxed text-ink-muted">
+    {{ i18n.t('translate.intro') }}
+  </p>
+
+  <div class="mt-10 grid gap-10 md:grid-cols-2">
+    <div class="flex flex-col">
+      <label
+        class="mb-3 block font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted"
+        for="translate-text"
+      >
+        Text
+      </label>
+      <textarea
+        class="min-h-32 w-full resize-none border border-line bg-transparent p-4 text-ink transition-colors focus:border-ink focus:outline-none"
+        id="translate-text"
+        rows="6"
+        [placeholder]="i18n.t('translate.textPlaceholder')"
+        [value]="derivedText()"
+        (input)="onTextInput($event)"
+      ></textarea>
+
+      @if (unsupported().length > 0) {
+        <p class="mt-2 text-sm text-error">
+          {{ i18n.t('translate.unsupportedWarning', { chars: unsupported().join(', ') }) }}
+        </p>
+      }
+
+      <button
+        class="mt-3 cursor-pointer self-start font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted transition-colors hover:text-ink"
+        type="button"
+        (click)="copy('text')"
+      >
+        {{ copiedField() === 'text' ? i18n.t('translate.copied') : i18n.t('translate.copy') }}
+      </button>
+    </div>
+
+    <div class="flex flex-col">
+      <label
+        class="mb-3 block font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted"
+        for="translate-morse"
+      >
+        Morse
+      </label>
+      <textarea
+        class="min-h-32 w-full resize-none border border-line bg-transparent p-4 text-ink transition-colors focus:border-ink focus:outline-none"
+        id="translate-morse"
+        rows="6"
+        [placeholder]="i18n.t('translate.morsePlaceholder')"
+        [value]="derivedMorse()"
+        (input)="onMorseInput($event)"
+      ></textarea>
+
+      @if (invalidTokens().length > 0) {
+        <p class="mt-2 text-sm text-error">
+          {{ i18n.t('translate.invalidWarning', { tokens: invalidTokens().join(', ') }) }}
+        </p>
+      }
+
+      <div class="mt-3 flex items-center gap-6">
+        <button
+          class="cursor-pointer font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted transition-colors hover:text-ink"
+          type="button"
+          (click)="copy('morse')"
+        >
+          {{ copiedField() === 'morse' ? i18n.t('translate.copied') : i18n.t('translate.copy') }}
+        </button>
+        <button
+          class="cursor-pointer font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted transition-colors hover:text-ink"
+          type="button"
+          [attr.aria-label]="i18n.t('translate.listenAria')"
+          (click)="play()"
+        >
+          Listen
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <p class="mt-16 max-w-xl text-sm leading-relaxed text-ink-muted">
+    {{ i18n.t('translate.cta') }}
+    <a class="text-ink underline underline-offset-4" routerLink="/login">Sign in</a>
+  </p>
+</main>

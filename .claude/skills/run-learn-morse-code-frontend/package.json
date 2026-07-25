@@ -1,0 +1,9 @@
+{
+  "name": "run-learn-morse-code-frontend-driver",
+  "private": true,
+  "description": "Standalone Playwright dependency for the run-learn-morse-code-frontend agent skill. Not part of the app build.",
+  "type": "module",
+  "dependencies": {
+    "playwright": "1.62.0"
+  }
+}

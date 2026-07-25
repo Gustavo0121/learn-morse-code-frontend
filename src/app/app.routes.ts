@@ -13,6 +13,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/login/login').then((m) => m.Login),
   },
   {
+    path: 'translate',
+    loadComponent: () => import('./features/translate/translate').then((m) => m.Translate),
+  },
+  {
     // Área autenticada: lessons, practice e settings entram aqui nas Fases 2/5/6.
     path: '',
     canActivate: [authGuard],

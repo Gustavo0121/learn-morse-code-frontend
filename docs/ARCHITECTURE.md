@@ -86,6 +86,13 @@ src/app/
 - Quando o round usou a superfície de toque, `input_method` vai como o literal `"Touch"` (aceito pelo backend fora da whitelist `AllowedKey`); pelo teclado, vai a tecla configurada.
 - Feedback de acerto/erro com resposta esperada, resposta dada e tempo de reação.
 
+## Tradutor (`/translate`)
+
+- Rota **pública** (fora do `authGuard`), lazy — funciona sem login e sem rede, com link visível no header tanto para visitantes anônimos quanto autenticados (porta de entrada pública para registro).
+- `services/morse-alphabet.ts` mantém uma cópia local, imutável, do alfabeto ITU (letras, números e pontuação — mesmo conteúdo do seed do backend, `apps/morse/migrations/0004_seed_morse_characters.py`), para não depender de `GET /api/morse-characters` (a API inteira exige `IsAuthenticated`). **Duplicação consciente**: o padrão ITU-R M.1677-1 é estável, o risco de divergência entre esta constante e a tabela `MorseCharacter` do backend é baixo, mas fica registrado aqui deliberadamente.
+- `services/morse-translator.ts` (funções puras `textToMorse`/`morseToText`) faz a tradução bidirecional reativa (sem botão "traduzir"): caracteres de texto sem código Morse são marcados com `#` e sequências Morse inválidas com `?`, ambos listados como aviso, sem interromper o resto da tradução.
+- O código Morse produzido usa exatamente o formato aceito por `MorseAudioService.playSequence` (espaço entre letras, `/` entre palavras), permitindo ouvir o resultado com um clique; como visitante anônimo é o caso comum nesta rota, usa o mesmo fallback local `DEFAULT_PLAYBACK` das demais telas quando `MorseSettingsService.settings()` é `null`.
+
 ## Dashboard (`/dashboard`)
 
 - Bloco **Progress** com o agregado de `GET /api/users/statistics` (calculado só no backend): precisão, velocidade média (cpm), tempo total de treino e acertos/tentativas. Sem tentativas registradas, precisão e velocidade aparecem como `—`.
