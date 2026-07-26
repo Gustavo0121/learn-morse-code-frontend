@@ -6,6 +6,8 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { Footer } from './footer';
 
 describe('Footer', () => {
+  afterEach(() => localStorage.removeItem('lmc.locale'));
+
   async function setup() {
     const { fixture } = await render(Footer, { providers: [provideRouter([])] });
     return { i18n: TestBed.inject(I18nService), fixture };
