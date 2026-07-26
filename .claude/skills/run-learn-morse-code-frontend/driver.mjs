@@ -80,8 +80,10 @@ const COMMANDS = {
     console.log(value);
   },
 
-  async 'value'(selector) {
-    const value = await page.inputValue(selector).catch((e) => `ERROR: ${e.message.split('\n')[0]}`);
+  async value(selector) {
+    const value = await page
+      .inputValue(selector)
+      .catch((e) => `ERROR: ${e.message.split('\n')[0]}`);
     console.log(value);
   },
 
@@ -94,9 +96,10 @@ const COMMANDS = {
   },
 
   console(flag) {
-    const entries = flag === '--errors'
-      ? consoleLog.filter((e) => e.type === 'error' || e.type === 'pageerror')
-      : consoleLog;
+    const entries =
+      flag === '--errors'
+        ? consoleLog.filter((e) => e.type === 'error' || e.type === 'pageerror')
+        : consoleLog;
     if (entries.length === 0) {
       console.log('(no console output)');
     }
