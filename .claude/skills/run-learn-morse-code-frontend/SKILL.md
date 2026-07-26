@@ -51,18 +51,18 @@ Screenshots land in `.claude/skills/run-learn-morse-code-frontend/screenshots/`
 
 ### Commands
 
-| command | what it does |
-|---|---|
-| `nav <path-or-url>` | navigate (relative paths resolve against `BASE_URL`), waits for network idle |
-| `wait-for <selector>` | wait up to 10s for a Playwright selector (`css`, `#id`, `text=One Word` — **no spaces**, see Gotchas) |
-| `screenshot [name]` | full-page screenshot → `screenshots/<name>.png` |
-| `click <selector>` | click; catches and prints errors instead of throwing (e.g. strict-mode violations) |
-| `fill <selector> <value...>` | set an input/textarea value (fires Angular's `(input)` binding) |
-| `press <key>` | keyboard press (e.g. `Enter`, `Escape`) on whatever has focus |
-| `text [selector]` | print `innerText` of the selector (or `<body>`) — use for multi-word content instead of `wait-for text=` |
-| `value <selector>` | print an input/textarea's current value |
-| `eval <js-expr>` | evaluate JS in the page, print JSON result |
-| `console` / `console --errors` | print collected console messages (all, or just `error`/`pageerror`) |
+| command                        | what it does                                                                                             |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| `nav <path-or-url>`            | navigate (relative paths resolve against `BASE_URL`), waits for network idle                             |
+| `wait-for <selector>`          | wait up to 10s for a Playwright selector (`css`, `#id`, `text=One Word` — **no spaces**, see Gotchas)    |
+| `screenshot [name]`            | full-page screenshot → `screenshots/<name>.png`                                                          |
+| `click <selector>`             | click; catches and prints errors instead of throwing (e.g. strict-mode violations)                       |
+| `fill <selector> <value...>`   | set an input/textarea value (fires Angular's `(input)` binding)                                          |
+| `press <key>`                  | keyboard press (e.g. `Enter`, `Escape`) on whatever has focus                                            |
+| `text [selector]`              | print `innerText` of the selector (or `<body>`) — use for multi-word content instead of `wait-for text=` |
+| `value <selector>`             | print an input/textarea's current value                                                                  |
+| `eval <js-expr>`               | evaluate JS in the page, print JSON result                                                               |
+| `console` / `console --errors` | print collected console messages (all, or just `error`/`pageerror`)                                      |
 
 ## Run (human path)
 
@@ -80,9 +80,9 @@ npm start   # opens on http://localhost:4200; Ctrl-C to stop
   the input then read it back with `text <selector>` or `value <selector>`
   instead of waiting on it directly.
 - **`getByLabel`-style lookups are ambiguous in this app** — Playwright's
-  `page.getByLabel('Morse')` matches *both* the `#translate-morse` textarea
+  `page.getByLabel('Morse')` matches _both_ the `#translate-morse` textarea
   (via its `<label for>`) and the "Listen" button (`aria-label="Ouvir a
-  sequência Morse"`), throwing a strict-mode violation. The driver
+sequência Morse"`), throwing a strict-mode violation. The driver
   intentionally only exposes plain CSS/`text=` selectors (`page.click`/
   `page.fill`), not `getByLabel`/`getByRole` — use `#translate-text` /
   `#translate-morse` ids for the translator fields.
@@ -91,13 +91,13 @@ npm start   # opens on http://localhost:4200; Ctrl-C to stop
   clipboard-write by default and it fails silently (`NotAllowedError` only
   visible via `console --errors`), which looks like a dead button. The
   driver's context already calls `grantPermissions(['clipboard-read',
-  'clipboard-write'], { origin: BASE_URL })` — keep that if you extend it.
+'clipboard-write'], { origin: BASE_URL })` — keep that if you extend it.
 - **Expected console noise, not real errors**: a `401` on
   `/api/auth/refresh` (the app's silent session-bootstrap on every page
   load, expected when anonymous and no backend is running) and a CORS
   failure hitting `cloudflareinsights.com` (the Cloudflare Web Analytics
   beacon, blocked in local dev because the origin isn't allow-listed).
-  Both appear on *every* page, unrelated to whatever you're testing —
+  Both appear on _every_ page, unrelated to whatever you're testing —
   don't mistake them for a regression.
 - **Backend-dependent routes** (`/login`, `/dashboard`, `/lessons`,
   `/practice`, `/settings` — anything behind `authGuard` or that calls the

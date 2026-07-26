@@ -228,6 +228,43 @@ export const MESSAGES = {
     pt: 'Crie uma conta para treinar no seu ritmo e acompanhar seu progresso.',
     en: 'Create an account to train at your own pace and track your progress.',
   },
+
+  // Footer
+  'footer.github': { pt: 'GitHub', en: 'GitHub' },
+  'footer.contact': { pt: 'Contato', en: 'Contact' },
+  'footer.terms': { pt: 'Termos de serviço', en: 'Terms of Service' },
+  'footer.privacy': { pt: 'Política de privacidade', en: 'Privacy Policy' },
+  'footer.security': { pt: 'Segurança', en: 'Security' },
+
+  // Páginas institucionais
+  'terms.p1': {
+    pt: 'Learn Morse Code é um projeto pessoal e educacional, sem fins comerciais. Ao criar uma conta, você concorda em usá-la para aprender e praticar código Morse, sem tentar abusar, sobrecarregar ou comprometer a segurança do serviço.',
+    en: "Learn Morse Code is a personal, educational, non-commercial project. By creating an account, you agree to use it to learn and practice Morse code, without attempting to abuse, overload, or compromise the service's security.",
+  },
+  'terms.p2': {
+    pt: 'O conteúdo (lições, estatísticas de prática) é fornecido como está, sem garantia de disponibilidade contínua. Funcionalidades podem mudar ou ser removidas a qualquer momento.',
+    en: 'Content (lessons, practice statistics) is provided as-is, without a guarantee of continuous availability. Features may change or be removed at any time.',
+  },
+  'privacy.p1': {
+    pt: 'Coletamos apenas os dados necessários para o funcionamento da conta: nome de usuário, e-mail, senha (armazenada com hash) e suas estatísticas de prática (respostas, precisão, velocidade). Esses dados não são vendidos nem compartilhados com terceiros.',
+    en: 'We only collect the data needed to run your account: username, email, password (stored hashed), and your practice statistics (answers, accuracy, speed). This data is never sold or shared with third parties.',
+  },
+  'privacy.p2': {
+    pt: 'O token de acesso vive apenas em memória no navegador e o token de atualização em um cookie httpOnly — nenhum dado sensível é gravado em localStorage. Para solicitar a exclusão da sua conta e dos dados associados, use o contato no rodapé.',
+    en: 'The access token lives only in browser memory and the refresh token in an httpOnly cookie — no sensitive data is written to localStorage. To request deletion of your account and associated data, use the contact link in the footer.',
+  },
+  'security.p1': {
+    pt: 'Este projeto é entregue continuamente a partir da branch de produção — apenas a versão em produção recebe correções de segurança.',
+    en: 'This project ships continuously from the production branch — only the version in production receives security fixes.',
+  },
+  'security.p2': {
+    pt: 'Encontrou uma vulnerabilidade? Não abra uma issue pública. Use o Private Vulnerability Reporting do GitHub ou envie um e-mail com o assunto "[SECURITY] learn-morse-code" para o contato no rodapé.',
+    en: 'Found a vulnerability? Don’t open a public issue. Use GitHub’s Private Vulnerability Reporting, or email with the subject "[SECURITY] learn-morse-code" to the contact link in the footer.',
+  },
+  'security.viewFull': {
+    pt: 'Ver política completa no GitHub',
+    en: 'View full policy on GitHub',
+  },
 } satisfies Record<string, Record<Locale, string>>;
 
 export type MessageKey = keyof typeof MESSAGES;
