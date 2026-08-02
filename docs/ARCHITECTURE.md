@@ -29,7 +29,7 @@ src/app/
 - **Bootstrap silencioso**: `provideAppInitializer` chama `POST /api/auth/refresh` no carregamento para restaurar a sessão.
 - **Proteção CSRF**: as rotas que dependem do cookie (`/auth/refresh`, `/auth/logout`) recebem o header `X-CSRF-Protection: 1` exigido pelo backend.
 - **Refresh automático**: o `authInterceptor` anexa `Authorization: Bearer` e, em `401`, renova o token e reenvia a requisição original (requisições simultâneas compartilham um único refresh); se o refresh falhar, a sessão é limpa e o usuário volta ao login.
-- **Guard**: `authGuard` protege a área autenticada (`/dashboard`, `/lessons`, `/practice`, `/settings`) com redirect para `/login?returnUrl=...`.
+- **Guard**: `authGuard` protege a área autenticada (`/dashboard`, `/lessons`, `/practice`, `/leaderboard`, `/settings`) com redirect para `/login?returnUrl=...`.
 - Após login, as preferências Morse (`GET /api/users/morse-settings`) e o perfil do usuário (`GET /api/users/profile`, exposto em `AuthService.currentUser`) são carregados para memória.
 - **Cadastro**: a tela de login alterna para o modo "Create account" (`POST /api/auth/register` com `{username, email, password}`) e autentica automaticamente após criar a conta.
 
@@ -99,6 +99,13 @@ src/app/
 - Bloco **Progress** com o agregado de `GET /api/users/statistics` (calculado só no backend): precisão, velocidade média (cpm), tempo total de treino e acertos/tentativas. Sem tentativas registradas, precisão e velocidade aparecem como `—`.
 - Bloco **Recent training** com os últimos 8 registros de `GET /api/practice/history` (já ordenado do mais recente): acerto/erro, questão → resposta, modo, tempo de reação e data. Estado vazio traz chamada para `/practice`.
 - Cada bloco tem carregamento, erro e retry independentes — a falha de um não derruba o outro.
+
+## Leaderboard (`/leaderboard`)
+
+- Ranking cross-user de `GET /api/leaderboard?speed_wpm=<n>&exercise_type=<tipo>&period=<janela>` (`services/leaderboard.service.ts`), filtrado por três grupos de pílulas no mesmo estilo de `features/settings` (velocidade `5–25`, modo `key_capture`/`multiple_choice`/`listening`, período geral/semanal/mensal). Trocar qualquer filtro dispara uma nova busca — não há confirmação, é leitura.
+- Defaults: `speed_wpm=20`, `exercise_type='key_capture'`, `period='general'`.
+- Cada posição mostra `#posição`, usuário, precisão e cpm; carregamento, erro (com retry) e vazio seguem o mesmo padrão do Dashboard.
+- `position`/`accuracy`/`cpm`/`score` são sempre calculados no backend a partir do histórico — o cliente nunca envia nem deriva pontuação.
 
 ## Idiomas (i18n)
 

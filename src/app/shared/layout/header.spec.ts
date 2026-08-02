@@ -43,7 +43,7 @@ describe('Header', () => {
     expect(screen.queryByRole('button', { name: /sign out/i })).not.toBeInTheDocument();
   });
 
-  it('com sessão, oferece translate, dashboard, lessons, settings e sign out', async () => {
+  it('com sessão, oferece translate, dashboard, lessons, leaderboard, settings e sign out', async () => {
     const { http, auth } = await setup();
     authenticate(http, auth);
 
@@ -53,6 +53,10 @@ describe('Header', () => {
       '/dashboard',
     );
     expect(screen.getByRole('link', { name: /lessons/i })).toHaveAttribute('href', '/lessons');
+    expect(screen.getByRole('link', { name: /leaderboard/i })).toHaveAttribute(
+      'href',
+      '/leaderboard',
+    );
     expect(screen.getByRole('link', { name: /settings/i })).toHaveAttribute('href', '/settings');
     expect(screen.queryByRole('link', { name: /sign in/i })).not.toBeInTheDocument();
   });
