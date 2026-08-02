@@ -37,6 +37,7 @@ src/app/
 
 - Tela `/settings` (autenticada) com blocos **Audio** (velocidade `5–25 WPM`, frequência Grave/Médio/Agudo = `400/700/1000 Hz`, volume `0–1`, tipo de onda) e **Input** (tecla de captura).
 - As opções espelham exatamente os choices/validators do backend; a tecla de captura é restrita à whitelist retornada por `GET /api/morse-settings/allowed-keys` (mesma lista que o servidor valida — nada de blacklist local).
+- O bloco **Input** é ocultado em dispositivos de ponteiro grosseiro (`pointer-coarse:hidden`, mesma variante do Tailwind usada por `app-tap-pad`) — no toque o `input_method` é sempre `"Touch"`, a tecla configurada não se aplica; a UI só some, o valor salvo no backend é preservado.
 - Alterações passam por **confirmação visual** antes do `PUT /api/users/morse-settings`; nomes de campo seguem o contrato (`speed_wpm`, nunca `speed`).
 - **Test sound** toca "LMC" em Morse com as configurações do rascunho — demonstra timbre e velocidade antes de salvar.
 

@@ -26,7 +26,7 @@ const ALLOWED_KEYS = [
 
 describe('Settings', () => {
   async function setup({ allowedKeysFail = false, settings = SETTINGS } = {}) {
-    await render(Settings, {
+    const { container } = await render(Settings, {
       providers: [provideHttpClient(), provideHttpClientTesting()],
     });
     const http = TestBed.inject(HttpTestingController);
@@ -39,7 +39,7 @@ describe('Settings', () => {
     }
     http.expectOne('/api/users/morse-settings').flush(settings);
 
-    return { http, user: userEvent.setup() };
+    return { http, container, user: userEvent.setup() };
   }
 
   it('exibe as preferências carregadas com as opções do backend selecionadas', async () => {
@@ -65,6 +65,15 @@ describe('Settings', () => {
     }
     expect(screen.queryByRole('button', { name: 'KeyZ' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Space' })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('a seção de escolha de tecla é ocultada em dispositivos touch (pointer-coarse:hidden)', async () => {
+    await setup();
+
+    const section = (await screen.findByText('Capture key')).closest(
+      '[class*="pointer-coarse:hidden"]',
+    );
+    expect(section).not.toBeNull();
   });
 
   it('sem a whitelist, não oferece seleção de tecla e explica o motivo', async () => {
