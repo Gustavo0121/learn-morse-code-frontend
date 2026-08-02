@@ -78,8 +78,10 @@
     </div>
   </div>
 
-  <p class="mt-16 max-w-xl text-sm leading-relaxed text-ink-muted">
-    {{ i18n.t('translate.cta') }}
-    <a class="text-ink underline underline-offset-4" routerLink="/login">Sign in</a>
-  </p>
+  @if (!authenticated()) {
+    <p class="mt-16 max-w-xl text-sm leading-relaxed text-ink-muted">
+      {{ i18n.t('translate.cta') }}
+      <a class="text-ink underline underline-offset-4" routerLink="/login">Sign in</a>
+    </p>
+  }
 </main>

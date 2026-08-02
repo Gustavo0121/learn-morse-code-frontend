@@ -25,7 +25,7 @@ const ALLOWED_KEYS = [
 ];
 
 describe('Settings', () => {
-  async function setup({ allowedKeysFail = false } = {}) {
+  async function setup({ allowedKeysFail = false, settings = SETTINGS } = {}) {
     await render(Settings, {
       providers: [provideHttpClient(), provideHttpClientTesting()],
     });
@@ -37,7 +37,7 @@ describe('Settings', () => {
     } else {
       keys.flush(ALLOWED_KEYS);
     }
-    http.expectOne('/api/users/morse-settings').flush(SETTINGS);
+    http.expectOne('/api/users/morse-settings').flush(settings);
 
     return { http, user: userEvent.setup() };
   }
@@ -79,7 +79,7 @@ describe('Settings', () => {
   it('salva alterações somente após confirmação visual', async () => {
     const { http, user } = await setup();
 
-    await user.click(await screen.findByRole('button', { name: '40' }));
+    await user.click(await screen.findByRole('button', { name: '25' }));
     await user.click(screen.getByRole('button', { name: 'KeyA' }));
 
     await user.click(screen.getByRole('button', { name: 'Save' }));
@@ -90,17 +90,33 @@ describe('Settings', () => {
 
     const put = http.expectOne('/api/users/morse-settings');
     expect(put.request.method).toBe('PUT');
-    expect(put.request.body).toEqual({ ...SETTINGS, speed_wpm: 40, input_key: 'KeyA' });
-    put.flush({ ...SETTINGS, speed_wpm: 40, input_key: 'KeyA' });
+    expect(put.request.body).toEqual({ ...SETTINGS, speed_wpm: 25, input_key: 'KeyA' });
+    put.flush({ ...SETTINGS, speed_wpm: 25, input_key: 'KeyA' });
 
     expect(await screen.findByRole('status')).toHaveTextContent('Preferências salvas.');
     expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
   });
 
+  it('velocidade salva fora da lista atual cai para a opção válida mais próxima', async () => {
+    const { http, user } = await setup({ settings: { ...SETTINGS, speed_wpm: 40 } });
+
+    expect(await screen.findByRole('button', { name: '25' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled();
+
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+    await user.click(screen.getByRole('button', { name: 'Confirm' }));
+
+    const put = http.expectOne('/api/users/morse-settings');
+    expect(put.request.body).toEqual({ ...SETTINGS, speed_wpm: 25 });
+  });
+
   it('cancelar a confirmação não envia nada ao backend', async () => {
     const { http, user } = await setup();
 
-    await user.click(await screen.findByRole('button', { name: '40' }));
+    await user.click(await screen.findByRole('button', { name: '25' }));
     await user.click(screen.getByRole('button', { name: 'Save' }));
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
 
@@ -132,12 +148,12 @@ describe('Settings', () => {
       .mockResolvedValue(undefined);
 
     await user.click(await screen.findByRole('button', { name: /grave · 400 hz/i }));
-    await user.click(screen.getByRole('button', { name: '40' }));
+    await user.click(screen.getByRole('button', { name: '25' }));
     await user.click(screen.getByRole('button', { name: 'Test sound' }));
 
     expect(playSequence).toHaveBeenCalledWith(
       '.-.. -- -.-.',
-      expect.objectContaining({ frequency: 400, speed_wpm: 40 }),
+      expect.objectContaining({ frequency: 400, speed_wpm: 25 }),
     );
   });
 });

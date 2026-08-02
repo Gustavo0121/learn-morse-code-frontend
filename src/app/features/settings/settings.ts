@@ -14,13 +14,20 @@ import {
 } from '../../services/morse-settings.service';
 
 /** Opções espelhando os choices/validators do backend — nunca substituindo-os. */
-const SPEED_OPTIONS: readonly number[] = [5, 10, 15, 20, 30, 40, 60];
+const SPEED_OPTIONS: readonly number[] = [5, 10, 15, 20, 25];
 const FREQUENCY_OPTIONS: readonly { label: MessageKey; value: number }[] = [
   { label: 'settings.freqLow', value: 400 },
   { label: 'settings.freqMid', value: 700 },
   { label: 'settings.freqHigh', value: 1000 },
 ];
 const WAVE_OPTIONS: readonly WaveType[] = ['sine', 'square', 'triangle', 'sawtooth'];
+
+/** Aproxima um `speed_wpm` salvo fora da lista atual (ex.: valor legado) da opção válida mais próxima. */
+function closestSpeedOption(value: number): number {
+  return SPEED_OPTIONS.reduce((closest, option) =>
+    Math.abs(option - value) < Math.abs(closest - value) ? option : closest,
+  );
+}
 
 /** Amostra tocada pelo "Test sound": LMC em Morse — demonstra timbre e velocidade. */
 const TEST_SEQUENCE = '.-.. -- -.-.';
@@ -76,7 +83,7 @@ export class Settings {
     effect(() => {
       const saved = this.saved();
       if (saved && !this.#touched()) {
-        this.draft.set({ ...saved });
+        this.draft.set({ ...saved, speed_wpm: closestSpeedOption(saved.speed_wpm) });
       }
     });
   }
