@@ -139,6 +139,29 @@ import { I18nService } from '../../core/i18n/i18n.service';
             </a>
             <a
               class="text-ink-muted transition-colors hover:text-ink"
+              routerLink="/leaderboard"
+              aria-label="Leaderboard"
+              title="Leaderboard"
+            >
+              <svg
+                class="h-5 w-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M8 21h8" />
+                <path d="M12 17v4" />
+                <path d="M7 4h10v5a5 5 0 0 1-10 0V4Z" />
+                <path d="M7 5H4a2 2 0 0 0 0 4h1" />
+                <path d="M17 5h3a2 2 0 0 1 0 4h-1" />
+              </svg>
+            </a>
+            <a
+              class="text-ink-muted transition-colors hover:text-ink"
               routerLink="/settings"
               aria-label="Settings"
               title="Settings"
@@ -237,6 +260,9 @@ import { I18nService } from '../../core/i18n/i18n.service';
           </a>
           <a class="{{ menuItemClasses }}" routerLink="/lessons" (click)="closeMenu()">Lessons</a>
           <a class="{{ menuItemClasses }}" routerLink="/practice" (click)="closeMenu()">Practice</a>
+          <a class="{{ menuItemClasses }}" routerLink="/leaderboard" (click)="closeMenu()">
+            Leaderboard
+          </a>
           <a class="{{ menuItemClasses }}" routerLink="/settings" (click)="closeMenu()">Settings</a>
           <button class="{{ menuItemClasses }} w-full text-left" type="button" (click)="logout()">
             Sign out

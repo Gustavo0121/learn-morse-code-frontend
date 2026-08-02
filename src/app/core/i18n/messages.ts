@@ -101,6 +101,22 @@ export const MESSAGES = {
   'dashboard.miss': { pt: 'Erro', en: 'Miss' },
   'dashboard.multipleChoice': { pt: 'Múltipla escolha', en: 'Multiple choice' },
 
+  // Leaderboard
+  'leaderboard.keyCapture': { pt: 'Captura por tecla', en: 'Key capture' },
+  'leaderboard.listening': { pt: 'Escuta', en: 'Listening' },
+  'leaderboard.periodGeneral': { pt: 'Geral', en: 'Overall' },
+  'leaderboard.periodWeekly': { pt: 'Semanal', en: 'Weekly' },
+  'leaderboard.periodMonthly': { pt: 'Mensal', en: 'Monthly' },
+  'leaderboard.loadError': {
+    pt: 'Não foi possível carregar o ranking.',
+    en: 'Could not load the leaderboard.',
+  },
+  'leaderboard.loading': { pt: 'Carregando ranking…', en: 'Loading leaderboard…' },
+  'leaderboard.empty': {
+    pt: 'Ninguém no ranking ainda para esse filtro. Treine para aparecer aqui.',
+    en: 'No one on the leaderboard yet for this filter. Train to show up here.',
+  },
+
   // Settings
   'settings.freqLow': { pt: 'Grave', en: 'Low' },
   'settings.freqMid': { pt: 'Médio', en: 'Mid' },

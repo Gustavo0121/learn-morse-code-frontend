@@ -58,6 +58,11 @@ export const routes: Routes = [
         path: 'practice',
         loadComponent: () => import('./features/practice/practice').then((m) => m.Practice),
       },
+      {
+        path: 'leaderboard',
+        loadComponent: () =>
+          import('./features/leaderboard/leaderboard').then((m) => m.Leaderboard),
+      },
     ],
   },
   { path: '**', redirectTo: '' },
