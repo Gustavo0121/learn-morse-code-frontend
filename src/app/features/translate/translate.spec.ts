@@ -1,8 +1,11 @@
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { render, screen, waitFor } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 
+import { AuthService } from '../../core/auth/auth.service';
 import { MorseAudioService } from '../../services/morse-audio.service';
 import { Translate } from './translate';
 
@@ -16,8 +19,19 @@ function stubClipboard() {
 }
 
 async function setup() {
-  await render(Translate, { providers: [provideRouter([])] });
-  return { user: userEvent.setup() };
+  await render(Translate, {
+    providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+  });
+  return {
+    http: TestBed.inject(HttpTestingController),
+    auth: TestBed.inject(AuthService),
+    user: userEvent.setup(),
+  };
+}
+
+function authenticate(http: HttpTestingController, auth: AuthService): void {
+  auth.refresh().subscribe();
+  http.expectOne('/api/auth/refresh').flush({ access: 'token' });
 }
 
 describe('Translate', () => {
@@ -89,6 +103,21 @@ describe('Translate', () => {
     expect(playSequence).toHaveBeenCalledWith(
       '... --- ...',
       expect.objectContaining({ speed_wpm: 20 }),
+    );
+  });
+
+  it('oferece o CTA de criar conta apenas para visitante anônimo', async () => {
+    await setup();
+
+    expect(screen.getByRole('link', { name: 'Sign in' })).toBeVisible();
+  });
+
+  it('não oferece o CTA de criar conta para usuário autenticado', async () => {
+    const { http, auth } = await setup();
+    authenticate(http, auth);
+
+    await waitFor(() =>
+      expect(screen.queryByRole('link', { name: 'Sign in' })).not.toBeInTheDocument(),
     );
   });
 });

@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { AuthService } from '../../core/auth/auth.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { MorseAudioService, MorsePlaybackSettings } from '../../services/morse-audio.service';
 import { MorseSettingsService } from '../../services/morse-settings.service';
@@ -28,7 +29,10 @@ const COPIED_RESET_MS = 1500;
 export class Translate {
   readonly #audio = inject(MorseAudioService);
   readonly #settings = inject(MorseSettingsService);
+  readonly #auth = inject(AuthService);
   protected readonly i18n = inject(I18nService);
+
+  protected readonly authenticated = this.#auth.isAuthenticated;
 
   protected readonly text = signal('');
   protected readonly morse = signal('');
