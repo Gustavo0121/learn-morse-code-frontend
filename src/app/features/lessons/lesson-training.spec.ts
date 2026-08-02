@@ -76,10 +76,6 @@ describe('LessonTraining', () => {
     fireEvent(window, new KeyboardEvent('keyup', { code: 'Space', cancelable: true }));
   }
 
-  function enter(): void {
-    fireEvent(window, new KeyboardEvent('keydown', { key: 'Enter', cancelable: true }));
-  }
-
   afterEach(() => {
     vi.restoreAllMocks();
     vi.useRealTimers();
@@ -102,6 +98,7 @@ describe('LessonTraining', () => {
     // Etapa 1 — texto → Morse.
     expect(screen.getByText('Etapa: 1/4')).toBeVisible();
     expect(screen.getByText('Qual é o código?')).toBeVisible();
+    const target = screen.getByText('A');
     now += 1000;
     fireEvent.click(screen.getByRole('button', { name: '.-' }));
     let post = http.expectOne('/api/practice/history');
@@ -115,7 +112,12 @@ describe('LessonTraining', () => {
     post.flush(record({}), { status: 201, statusText: 'Created' });
     detectChanges();
     expect(screen.getByText('Correto')).toBeVisible();
-    enter();
+    const chosen = screen.getByRole('button', { name: '.-' });
+    expect(chosen).toBeDisabled();
+    expect(chosen).toHaveClass('border-success', 'text-success');
+    expect(target).toHaveClass('text-success');
+    await vi.advanceTimersByTimeAsync(500);
+    detectChanges();
 
     // Etapa 2 — Morse → texto.
     expect(screen.getByText('Etapa: 2/4')).toBeVisible();
@@ -133,7 +135,8 @@ describe('LessonTraining', () => {
       statusText: 'Created',
     });
     detectChanges();
-    enter();
+    await vi.advanceTimersByTimeAsync(500);
+    detectChanges();
 
     // Etapa 3 — listening.
     expect(screen.getByText('Etapa: 3/4')).toBeVisible();
@@ -152,7 +155,8 @@ describe('LessonTraining', () => {
       { status: 201, statusText: 'Created' },
     );
     detectChanges();
-    enter();
+    await vi.advanceTimersByTimeAsync(500);
+    detectChanges();
 
     // Etapa 4 — key capture.
     expect(screen.getByText('Etapa: 4/4')).toBeVisible();
@@ -174,7 +178,8 @@ describe('LessonTraining', () => {
       statusText: 'Created',
     });
     detectChanges();
-    enter();
+    await vi.advanceTimersByTimeAsync(500);
+    detectChanges();
 
     // Resumo do treino.
     expect(screen.getByText('Treino concluído')).toBeVisible();

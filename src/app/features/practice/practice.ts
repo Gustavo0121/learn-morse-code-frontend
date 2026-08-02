@@ -91,16 +91,11 @@ export class Practice {
     });
   }
 
-  /** Enter aciona o Next na tela de resultado e o Restart no resumo da sessão. */
+  /** Enter aciona o Restart no resumo da sessão (o próximo round é automático). */
   protected advanceOnEnter(event: Event): void {
     if (this.session.finished()) {
       event.preventDefault();
       this.session.restart();
-      return;
-    }
-    if (this.session.result() && !this.session.submitting()) {
-      event.preventDefault();
-      this.session.nextRound();
     }
   }
 
@@ -144,5 +139,24 @@ export class Practice {
     const minutes = String(Math.floor(totalS / 60)).padStart(2, '0');
     const seconds = String(totalS % 60).padStart(2, '0');
     return `${minutes}:${seconds}`;
+  }
+
+  /** Destaque de ~0,5s no caractere/código do round (feedback inline, issue #32). */
+  protected outcome(): 'correct' | 'wrong' | null {
+    const result = this.session.result();
+    return result ? (result.correct ? 'correct' : 'wrong') : null;
+  }
+
+  protected optionClass(option: string): string {
+    const base = 'min-w-20 cursor-pointer border px-6 py-4 font-display text-xl font-extrabold';
+    const tracking =
+      this.session.mode() === 'text_to_morse' ? ' tracking-[0.4em] pl-[calc(1.5rem+0.4em)]' : '';
+    const result = this.session.result();
+    if (result && option === result.user_answer) {
+      return result.correct
+        ? `${base}${tracking} border-success text-success`
+        : `${base}${tracking} border-error text-error`;
+    }
+    return `${base}${tracking} border-line text-ink transition-colors hover:border-ink`;
   }
 }

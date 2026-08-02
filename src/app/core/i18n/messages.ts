@@ -15,7 +15,6 @@ export const MESSAGES = {
   'common.level': { pt: 'Nível {level}', en: 'Level {level}' },
   'common.listenTo': { pt: 'Ouvir {character}', en: 'Listen to {character}' },
   'common.expected': { pt: 'Esperado:', en: 'Expected:' },
-  'common.yourAnswer': { pt: 'Sua resposta:', en: 'Your answer:' },
   'common.submitting': { pt: 'Registrando…', en: 'Recording…' },
   'common.submitError': {
     pt: 'Não foi possível registrar a tentativa.',
@@ -217,7 +216,6 @@ export const MESSAGES = {
   'practice.test': { pt: 'Teste', en: 'Test' },
   'practice.session': { pt: 'Sessão', en: 'Session' },
   'practice.speed': { pt: 'Velocidade', en: 'Speed' },
-  'practice.responseTime': { pt: 'Tempo de resposta:', en: 'Response time:' },
 
   // Tradutor
   'translate.intro': {

@@ -73,12 +73,13 @@ src/app/
 - **Sequência conduzida**: percorre os quatro modos em ordem fixa — Texto → Morse, Morse → Texto, Listening e Key capture — cada bloco cobrindo todos os caracteres da lição (embaralhados), do reconhecimento à produção.
 - Restrito ao conteúdo da lição: sorteio e distratores vêm apenas de `lesson.characters`.
 - Cada tentativa é registrada em `POST /api/practice/history` com o mesmo contrato do módulo de prática (conta para estatísticas e dashboard).
-- Enter conduz o fluxo (começar, avançar no resultado, repetir no resumo); ao final, resumo com precisão e acertos/total.
+- Enter conduz o fluxo (começar, repetir no resumo — o avanço entre exercícios é automático, ver feedback inline abaixo); ao final, resumo com precisão e acertos/total.
 
 ## Prática (`/practice`)
 
 - Quatro modos: **Key capture** (vê o caractere e transmite o código com a tecla configurada), **Texto → Morse** e **Morse → Texto** (múltipla escolha) e **Listening** (ouve o código e identifica o caractere).
 - As regras da sessão vivem em `services/practice-session.service.ts` (`PracticeSessionService`, provido no componente junto com o `KeyCaptureService` — uma instância por tela): filtros de conteúdo e pool de sorteio, montagem dos rounds e alternativas, contadores (total/acertos/precisão/cpm), relógio e metas da sessão, e o envio das tentativas com retry (integrando `PracticeService` e o fluxo de key_capture). O componente `practice.ts` fica só com a orquestração de UI: carga do alfabeto, rótulos i18n dos modos, formatação de relógio/labels, áudio e o atalho Enter.
+- **Feedback inline** (issue #32): ao responder, o exercício continua montado — a opção clicada (ou o texto capturado no key_capture, via `outcome` de `KeyCapture`) ganha destaque verde/vermelho (`--color-success`/`--color-error`, únicas exceções à paleta neutra) por `RESULT_HIGHLIGHT_MS` (500 ms), junto de um banner compacto (`role="status"`, `aria-live="polite"`) com "Correto"/"Errado" e, se errado, a resposta esperada. Passado o destaque, `PracticeSessionService` avança sozinho pro próximo round (sem clique/Enter) — mesmo mecanismo replicado em `LessonTraining`, que duplica esse fluxo (ver nota abaixo).
 - **Barras de configuração da sessão** (estilo monkeytype), visíveis após escolher o modo: conteúdo (**Punctuation**/**Numbers** — letras sempre entram no sorteio), tipo de sessão (**Time**/**Characters**) e valores (15/30/60/120 s ou 10/25/50/100 caracteres). Mudar qualquer opção reinicia a sessão.
 - Fim de sessão (tempo esgotado ou meta de caracteres atingida) mostra um painel de resultados — precisão em destaque, tipo do teste, configuração da sessão, velocidade (cpm, mesma fórmula do agregado do backend: caracteres ÷ soma dos tempos de resposta), acertos/total e tempo — com **Restart** e **Change mode**.
 - Tela de treino em layout de foco: modo, progresso (`N/meta` na sessão por caracteres), tempo (`mm:ss`, regressivo na sessão por tempo; o relógio só dispara no primeiro input do usuário) e precisão no topo; caractere/código em destaque no centro.
@@ -111,7 +112,7 @@ src/app/
 
 - Seletor **PT / EN** no header, persistido em `localStorage` (`lmc.locale`; preferência de idioma, não é dado sensível). Padrão: `pt`.
 - Tradução em runtime via `I18nService` (`core/i18n/`): `t(chave, params?)` lê o signal `locale`, então bindings e computeds que o chamam reagem à troca de idioma sem reload.
-- Dicionário tipado em `core/i18n/messages.ts` (`MessageKey` é união literal — chave inexistente não compila). O locale `pt` corresponde à UI original; rótulos editoriais em inglês do design (headings, "Sign in", "Next", barras da prática) são iguais nos dois idiomas e ficam fora do dicionário.
+- Dicionário tipado em `core/i18n/messages.ts` (`MessageKey` é união literal — chave inexistente não compila). O locale `pt` corresponde à UI original; rótulos editoriais em inglês do design (headings, "Sign in", "Play code", barras da prática) são iguais nos dois idiomas e ficam fora do dicionário.
 
 ## Footer institucional (`/terms`, `/privacy`, `/security`)
 
@@ -151,4 +152,4 @@ Checklist de hardening (Fase 8) aplicado e verificado:
 
 ## Design system
 
-Identidade minimalista premium (fundo `#050505`, texto `#FFFFFF`/`#A0A0A0`, fontes Inter/Manrope). Os design tokens ficam em `src/tailwind.css` (`@theme`), com contraste validado WCAG AA/AAA; o tema do Angular Material é alinhado a eles em `src/styles.scss`.
+Identidade minimalista premium (fundo `#050505`, texto `#FFFFFF`/`#A0A0A0`, fontes Inter/Manrope). Os design tokens ficam em `src/tailwind.css` (`@theme`), com contraste documentado no comentário do arquivo (a paleta neutra é AA/AAA; `--color-error`/`--color-success` são as únicas exceções deliberadas, com tons fortes por pedido do produto — `--color-error` abaixo de AA, ver nota no arquivo); o tema do Angular Material é alinhado a eles em `src/styles.scss`.

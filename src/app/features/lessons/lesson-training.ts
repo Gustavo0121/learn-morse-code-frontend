@@ -54,6 +54,9 @@ const DEFAULT_PLAYBACK: MorsePlaybackSettings = {
   wave_type: 'sine',
 };
 
+/** Janela do destaque inline (verde/vermelho) antes do próximo passo. */
+const RESULT_HIGHLIGHT_MS = 500;
+
 /**
  * Treino guiado da lição: mix dos quatro modos de prática, restrito aos
  * caracteres da lição. Cada tentativa é registrada no histórico de prática
@@ -109,6 +112,7 @@ export class LessonTraining {
   });
 
   #pendingAttempt: PracticeAttempt | null = null;
+  #advanceTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     effect(() => this.load(this.id()));
@@ -118,6 +122,7 @@ export class LessonTraining {
     this.#destroyRef.onDestroy(() => {
       subscription.unsubscribe();
       this.#capture.stop();
+      this.#clearAdvanceTimer();
     });
   }
 
@@ -152,6 +157,7 @@ export class LessonTraining {
   protected next(): void {
     if (this.index() + 1 >= this.steps().length) {
       this.#capture.stop();
+      this.#clearAdvanceTimer();
       this.result.set(null);
       this.stage.set('done');
       return;
@@ -160,7 +166,7 @@ export class LessonTraining {
     this.#enterStep();
   }
 
-  /** Enter conduz o fluxo: começa, avança no resultado e reinicia no fim. */
+  /** Enter conduz o fluxo: começa e reinicia no fim (o próximo passo é automático). */
   protected advanceOnEnter(event: Event): void {
     if (this.stage() === 'study' && this.lesson()) {
       event.preventDefault();
@@ -170,11 +176,6 @@ export class LessonTraining {
     if (this.stage() === 'done') {
       event.preventDefault();
       this.start();
-      return;
-    }
-    if (this.result() && !this.submitting()) {
-      event.preventDefault();
-      this.next();
     }
   }
 
@@ -222,6 +223,7 @@ export class LessonTraining {
 
   #enterStep(): void {
     this.#capture.stop();
+    this.#clearAdvanceTimer();
     this.result.set(null);
     this.submitError.set(false);
     this.#pendingAttempt = null;
@@ -229,6 +231,13 @@ export class LessonTraining {
 
     if (this.step()?.mode === 'key_capture') {
       this.#capture.start();
+    }
+  }
+
+  #clearAdvanceTimer(): void {
+    if (this.#advanceTimer !== null) {
+      clearTimeout(this.#advanceTimer);
+      this.#advanceTimer = null;
     }
   }
 
@@ -262,6 +271,7 @@ export class LessonTraining {
           this.totalCorrect.update((correct) => correct + 1);
         }
         this.result.set(record);
+        this.#advanceTimer = setTimeout(() => this.next(), RESULT_HIGHLIGHT_MS);
       },
       error: () => {
         this.submitting.set(false);
@@ -272,6 +282,25 @@ export class LessonTraining {
 
   #responseTime(): number {
     return Math.max(1, Math.round(performance.now() - this.#stepStartedAt()));
+  }
+
+  /** Destaque de ~0,5s no caractere/código do passo (feedback inline, issue #32). */
+  protected outcome(): 'correct' | 'wrong' | null {
+    const result = this.result();
+    return result ? (result.correct ? 'correct' : 'wrong') : null;
+  }
+
+  protected optionClass(option: string): string {
+    const base = 'min-w-20 cursor-pointer border px-6 py-4 font-display text-xl font-extrabold';
+    const tracking =
+      this.step()?.mode === 'text_to_morse' ? ' tracking-[0.4em] pl-[calc(1.5rem+0.4em)]' : '';
+    const result = this.result();
+    if (result && option === result.user_answer) {
+      return result.correct
+        ? `${base}${tracking} border-success text-success`
+        : `${base}${tracking} border-error text-error`;
+    }
+    return `${base}${tracking} border-line text-ink transition-colors hover:border-ink`;
   }
 
   #buildOptions(

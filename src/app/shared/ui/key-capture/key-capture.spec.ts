@@ -92,3 +92,29 @@ describe('KeyCapture', () => {
     expect(screen.getByText('.')).toBeVisible();
   });
 });
+
+describe('KeyCapture outcome (issue #32)', () => {
+  it('destaca os símbolos capturados em verde/vermelho conforme o outcome', async () => {
+    const view = await render(KeyCapture, {
+      inputs: { question: 'A', outcome: null },
+      providers: [KeyCaptureService, provideHttpClient(), provideHttpClientTesting()],
+    });
+    TestBed.inject(MorseSettingsService).load();
+    TestBed.inject(HttpTestingController).expectOne('/api/users/morse-settings').flush(SETTINGS);
+    const symbols = view.container.querySelector('p.tracking-widest') as HTMLElement;
+    const target = screen.getByText('A');
+
+    expect(symbols).toHaveClass('text-ink');
+    expect(symbols).not.toHaveClass('text-success');
+    expect(symbols).not.toHaveClass('text-error');
+    expect(target).toHaveClass('text-ink');
+
+    await view.rerender({ inputs: { question: 'A', outcome: 'correct' } });
+    expect(symbols).toHaveClass('text-success');
+    expect(target).toHaveClass('text-success');
+
+    await view.rerender({ inputs: { question: 'A', outcome: 'wrong' } });
+    expect(symbols).toHaveClass('text-error');
+    expect(target).toHaveClass('text-error');
+  });
+});

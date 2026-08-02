@@ -200,46 +200,37 @@
           </button>
         </div>
       </section>
-    } @else if (session.result(); as result) {
-      <section class="flex flex-1 flex-col items-center justify-center gap-6 text-center">
-        @if (result.correct) {
-          <p class="font-display text-4xl font-extrabold uppercase tracking-tight text-ink">
-            {{ i18n.t('common.correct') }}
-          </p>
-        } @else {
-          <p class="font-display text-4xl font-extrabold uppercase tracking-tight text-error">
-            {{ i18n.t('common.wrong') }}
-          </p>
-        }
-        <p class="text-sm text-ink-muted">
-          {{ i18n.t('common.expected') }}
-          <span class="text-ink">{{ result.expected_answer }}</span> ·
-          {{ i18n.t('common.yourAnswer') }}
-          <span class="text-ink">{{ result.user_answer }}</span>
-        </p>
-        <p class="text-sm text-ink-muted">
-          {{ i18n.t('practice.responseTime') }} {{ (result.response_time / 1000).toFixed(1) }}s
-        </p>
-        <div class="mt-4 flex items-center gap-6">
-          <button app-button type="button" title="Enter" (click)="session.nextRound()">
-            Next <span class="ml-2" aria-hidden="true">↵</span>
-          </button>
-        </div>
-      </section>
     } @else if (session.round(); as round) {
       <section class="flex flex-1 flex-col items-center justify-center gap-8 text-center">
+        @if (session.result(); as result) {
+          <p class="text-sm md:text-[1.3125rem]" role="status" aria-live="polite">
+            <span [class.text-success]="result.correct" [class.text-error]="!result.correct">
+              {{ result.correct ? i18n.t('common.correct') : i18n.t('common.wrong') }}
+            </span>
+            @if (!result.correct) {
+              <span class="text-error">
+                · {{ i18n.t('common.expected') }} {{ result.expected_answer }}
+              </span>
+            }
+          </p>
+        }
         @switch (session.mode()) {
           @case ('key_capture') {
             <p class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
               {{ i18n.t('practice.currentCode') }}
             </p>
-            <app-key-capture [question]="round.question" />
+            <app-key-capture [question]="round.question" [outcome]="outcome()" />
           }
           @case ('text_to_morse') {
             <p class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
               {{ i18n.t('practice.whichCode') }}
             </p>
-            <p class="font-display text-7xl font-extrabold uppercase text-ink">
+            <p
+              class="font-display text-7xl font-extrabold uppercase"
+              [class.text-success]="outcome() === 'correct'"
+              [class.text-error]="outcome() === 'wrong'"
+              [class.text-ink]="!outcome()"
+            >
               {{ round.question }}
             </p>
           }
@@ -247,7 +238,12 @@
             <p class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted">
               {{ i18n.t('practice.whichCharacter') }}
             </p>
-            <p class="font-display text-6xl font-extrabold tracking-widest text-ink">
+            <p
+              class="font-display text-6xl font-extrabold tracking-widest"
+              [class.text-success]="outcome() === 'correct'"
+              [class.text-error]="outcome() === 'wrong'"
+              [class.text-ink]="!outcome()"
+            >
               {{ round.question }}
             </p>
           }
@@ -265,14 +261,9 @@
           <div class="flex flex-wrap items-center justify-center gap-3">
             @for (option of options; track option) {
               <button
-                class="min-w-20 cursor-pointer border border-line px-6 py-4 font-display text-xl font-extrabold text-ink transition-colors hover:border-ink"
+                [class]="optionClass(option)"
                 type="button"
-                [class]="
-                  session.mode() === 'text_to_morse'
-                    ? 'tracking-[0.4em] pl-[calc(1.5rem+0.4em)]'
-                    : ''
-                "
-                [disabled]="session.submitting()"
+                [disabled]="session.submitting() || !!session.result()"
                 (click)="session.answer(option)"
               >
                 {{ option }}
