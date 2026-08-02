@@ -20,10 +20,20 @@ import { TapPad } from '../tap-pad/tap-pad';
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'contents' },
   template: `
-    <p class="font-display text-7xl font-extrabold uppercase text-ink">
+    <p
+      class="font-display text-7xl font-extrabold uppercase"
+      [class.text-success]="outcome() === 'correct'"
+      [class.text-error]="outcome() === 'wrong'"
+      [class.text-ink]="!outcome()"
+    >
       {{ question() }}
     </p>
-    <p class="min-h-8 font-display text-3xl font-extrabold tracking-widest text-ink">
+    <p
+      class="min-h-8 font-display text-3xl font-extrabold tracking-widest"
+      [class.text-success]="outcome() === 'correct'"
+      [class.text-error]="outcome() === 'wrong'"
+      [class.text-ink]="!outcome()"
+    >
       {{ capture.symbols() || ' ' }}
     </p>
     @if (capture.invalidPress()) {
@@ -43,4 +53,7 @@ export class KeyCapture {
 
   /** Caractere alvo do round (`question` enviado no attempt). */
   readonly question = input.required<string>();
+
+  /** Destaque de ~0,5s após a tentativa (feedback inline, issue #32). */
+  readonly outcome = input<'correct' | 'wrong' | null>(null);
 }

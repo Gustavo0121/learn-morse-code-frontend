@@ -31,6 +31,9 @@ const DEFAULT_CHARACTER_GOAL = 10;
 
 const CLOCK_TICK_MS = 500;
 
+/** Janela do destaque inline (verde/vermelho) antes do próximo round. */
+const RESULT_HIGHLIGHT_MS = 500;
+
 /**
  * Regras da sessão de prática livre: filtros de conteúdo, sorteio e montagem
  * dos rounds, contadores (total/acertos/precisão/cpm), relógio da sessão
@@ -128,6 +131,7 @@ export class PracticeSessionService {
 
   #pendingAttempt: PracticeAttempt | null = null;
   #clockTimer: ReturnType<typeof setInterval> | null = null;
+  #advanceTimer: ReturnType<typeof setTimeout> | null = null;
   #sessionStartedAt = 0;
 
   constructor() {
@@ -143,6 +147,7 @@ export class PracticeSessionService {
       captureSubscription.unsubscribe();
       this.#capture.stop();
       this.#stopClock();
+      this.#clearAdvanceTimer();
     });
   }
 
@@ -159,6 +164,7 @@ export class PracticeSessionService {
   exitMode(): void {
     this.#capture.stop();
     this.#stopClock();
+    this.#clearAdvanceTimer();
     this.#mode.set(null);
     this.#round.set(null);
     this.#result.set(null);
@@ -200,6 +206,7 @@ export class PracticeSessionService {
   }
 
   restart(): void {
+    this.#clearAdvanceTimer();
     this.#finished.set(false);
     this.#result.set(null);
     this.#submitError.set(false);
@@ -220,6 +227,7 @@ export class PracticeSessionService {
     }
 
     this.#capture.stop();
+    this.#clearAdvanceTimer();
     this.#result.set(null);
     this.#submitError.set(false);
     this.#pendingAttempt = null;
@@ -285,9 +293,17 @@ export class PracticeSessionService {
     }
   }
 
+  #clearAdvanceTimer(): void {
+    if (this.#advanceTimer !== null) {
+      clearTimeout(this.#advanceTimer);
+      this.#advanceTimer = null;
+    }
+  }
+
   #finishSession(): void {
     this.#capture.stop();
     this.#stopClock();
+    this.#clearAdvanceTimer();
     this.#round.set(null);
     this.#result.set(null);
     this.#submitError.set(false);
@@ -335,6 +351,7 @@ export class PracticeSessionService {
           return;
         }
         this.#result.set(record);
+        this.#advanceTimer = setTimeout(() => this.nextRound(), RESULT_HIGHLIGHT_MS);
       },
       error: () => {
         this.#submitting.set(false);

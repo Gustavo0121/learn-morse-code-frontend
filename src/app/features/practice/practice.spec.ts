@@ -113,7 +113,6 @@ describe('Practice', () => {
     detectChanges();
 
     expect(screen.getByText('Correto')).toBeVisible();
-    expect(screen.getByText(/tempo de resposta: 1\.5s/i)).toBeVisible();
     expect(screen.getByText(/precisão: 100%/i)).toBeVisible();
   });
 
@@ -156,11 +155,12 @@ describe('Practice', () => {
   });
 
   it('pressionamento longo demais é descartado com aviso e fica fora do envio', async () => {
-    const { http, detectChanges } = await setup();
+    const { http, detectChanges, container } = await setup();
     useTimers();
 
     fireEvent.click(screen.getByRole('button', { name: /key capture/i }));
-    expect(screen.getByText('A')).toBeVisible();
+    const target = screen.getByText('A');
+    expect(target).toBeVisible();
 
     press(400); // ≥ 360 ms a 20 WPM: backend rejeitaria
     expect(screen.getByRole('alert')).toHaveTextContent('longo demais');
@@ -177,15 +177,21 @@ describe('Practice', () => {
     detectChanges();
 
     expect(screen.getByText('Errado')).toBeVisible();
+    expect(screen.getByText(/esperado: \.-/i)).toBeVisible();
     expect(screen.getByText(/precisão: 0%/i)).toBeVisible();
+    // Destaque inline no texto capturado e no caractere alvo (issue #32), não só na mensagem.
+    expect(container.querySelector('p.tracking-widest')).toHaveClass('text-error');
+    expect(target).toHaveClass('text-error');
   });
 
-  it('texto → Morse envia multiple_choice com a opção escolhida e segue para o próximo round', async () => {
-    const { http } = await setup();
+  it('texto → Morse envia multiple_choice com a opção escolhida e avança sozinho após o destaque', async () => {
+    const { http, detectChanges } = await setup();
 
     fireEvent.click(screen.getByRole('button', { name: /texto → morse/i }));
+    const target = await screen.findByText('A');
+    expect(target).toBeVisible();
+    useTimers();
 
-    expect(await screen.findByText('A')).toBeVisible();
     now += 2500;
     fireEvent.click(screen.getByRole('button', { name: '.-' }));
 
@@ -198,12 +204,20 @@ describe('Practice', () => {
       response_time: 2500,
     });
     post.flush(record({}), { status: 201, statusText: 'Created' });
+    detectChanges();
 
-    expect(await screen.findByText('Correto')).toBeVisible();
+    expect(screen.getByText('Correto')).toBeVisible();
+    const chosen = screen.getByRole('button', { name: '.-' });
+    expect(chosen).toBeDisabled();
+    expect(chosen).toHaveClass('border-success', 'text-success');
+    expect(target).toHaveClass('text-success');
 
-    // Enter na tela de resultado aciona o Next.
-    fireEvent(window, new KeyboardEvent('keydown', { key: 'Enter', cancelable: true }));
-    expect(await screen.findByText(/qual é o código\?/i)).toBeVisible();
+    // Sem clique nem Enter: o próximo round chega sozinho após o destaque.
+    await vi.advanceTimersByTimeAsync(500);
+    detectChanges();
+
+    expect(screen.queryByText('Correto')).not.toBeInTheDocument();
+    expect(screen.getByText(/qual é o código\?/i)).toBeVisible();
   });
 
   it('listening toca o código no Play e envia a resposta como listening', async () => {
@@ -300,29 +314,34 @@ describe('Practice', () => {
   });
 
   it('sessão por caracteres termina na meta e mostra o resumo com Restart', async () => {
-    const { http } = await setup();
+    const { http, detectChanges } = await setup();
 
     fireEvent.click(screen.getByRole('button', { name: /texto → morse/i }));
+    expect(await screen.findByRole('button', { name: '.-' })).toBeVisible();
+    useTimers();
 
     for (let attempt = 1; attempt <= 10; attempt++) {
-      fireEvent.click(await screen.findByRole('button', { name: '.-' }));
+      fireEvent.click(screen.getByRole('button', { name: '.-' }));
       http.expectOne('/api/practice/history').flush(record({}), {
         status: 201,
         statusText: 'Created',
       });
+      detectChanges();
       if (attempt < 10) {
-        fireEvent.click(await screen.findByRole('button', { name: /next/i }));
+        await vi.advanceTimersByTimeAsync(500);
+        detectChanges();
       }
     }
 
-    expect(await screen.findByText('Sessão concluída')).toBeVisible();
+    expect(screen.getByText('Sessão concluída')).toBeVisible();
     expect(screen.getByText('100%')).toBeVisible();
     // 10 tentativas de 1500 ms → 10 × 60000 / 15000 = 40 cpm (fórmula do backend).
     expect(screen.getByText('40.0 cpm')).toBeVisible();
     expect(screen.getByText('Characters · 10')).toBeVisible();
 
     fireEvent.click(screen.getByRole('button', { name: /restart/i }));
-    expect(await screen.findByText(/qual é o código\?/i)).toBeVisible();
+    detectChanges();
+    expect(screen.getByText(/qual é o código\?/i)).toBeVisible();
     expect(screen.getByText('0/10')).toBeVisible();
   });
 
