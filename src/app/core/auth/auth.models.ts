@@ -26,6 +26,17 @@ export interface AuthResponse {
   access: string;
 }
 
+/** Corpo de POST /api/users/change-password. */
+export interface ChangePasswordRequest {
+  current_password: string;
+  new_password: string;
+}
+
+/** Corpo de DELETE /api/users/profile. */
+export interface DeleteAccountRequest {
+  current_password: string;
+}
+
 /**
  * Proteção CSRF exigida pelo backend nas rotas que dependem do cookie de
  * refresh (`/auth/refresh` e `/auth/logout`): header customizado que
