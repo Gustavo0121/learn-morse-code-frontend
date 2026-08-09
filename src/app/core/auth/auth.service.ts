@@ -18,6 +18,8 @@ import { MorseSettingsService } from '../../services/morse-settings.service';
 import {
   AuthResponse,
   CSRF_PROTECTION_HEADERS,
+  ChangePasswordRequest,
+  DeleteAccountRequest,
   LoginRequest,
   RegisterRequest,
   UserProfile,
@@ -119,6 +121,22 @@ export class AuthService {
     this.#closeSession();
   }
 
+  /** Troca a senha; o backend invalida os refresh tokens existentes (a sessão atual segue até o access token expirar). */
+  changePassword(request: ChangePasswordRequest): Observable<void> {
+    return this.#http.post<void>(`${environment.apiUrl}/users/change-password`, request);
+  }
+
+  /**
+   * Exclui a conta permanentemente. Em caso de sucesso o backend já invalidou
+   * os refresh tokens e apagou os dados — só resta encerrar a sessão local e
+   * voltar para a tela pública.
+   */
+  deleteAccount(request: DeleteAccountRequest): Observable<void> {
+    return this.#http
+      .delete<void>(`${environment.apiUrl}/users/profile`, { body: request })
+      .pipe(map(() => this.#closeSession('/')));
+  }
+
   #openSession(token: string): void {
     this.#accessToken.set(token);
     this.#loadSessionData();
@@ -133,10 +151,10 @@ export class AuthService {
     });
   }
 
-  #closeSession(): void {
+  #closeSession(destination = '/login'): void {
     this.#accessToken.set(null);
     this.#currentUser.set(null);
     this.#morseSettings.clear();
-    void this.#router.navigate(['/login']);
+    void this.#router.navigate([destination]);
   }
 }

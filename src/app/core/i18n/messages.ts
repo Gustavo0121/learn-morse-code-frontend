@@ -139,6 +139,30 @@ export const MESSAGES = {
   },
   'settings.loading': { pt: 'Carregando preferências…', en: 'Loading preferences…' },
 
+  // Conta (Settings)
+  'account.passwordChanged': {
+    pt: 'Senha alterada com sucesso.',
+    en: 'Password changed successfully.',
+  },
+  'account.passwordMismatch': { pt: 'As senhas não coincidem.', en: 'Passwords don’t match.' },
+  'account.changePasswordError': {
+    pt: 'Não foi possível trocar a senha. Tente novamente.',
+    en: 'Could not change the password. Try again.',
+  },
+  'account.deleteHint': {
+    pt: 'Digite {username} e sua senha atual para confirmar. Essa ação não pode ser desfeita.',
+    en: 'Type {username} and your current password to confirm. This action cannot be undone.',
+  },
+  'account.deleteError': {
+    pt: 'Não foi possível excluir a conta. Tente novamente.',
+    en: 'Could not delete the account. Try again.',
+  },
+  'account.tooManyAttempts': {
+    pt: 'Muitas tentativas. Aguarde um instante e tente novamente.',
+    en: 'Too many attempts. Wait a moment and try again.',
+  },
+  'account.loading': { pt: 'Carregando conta…', en: 'Loading account…' },
+
   // Lessons
   'lessons.error': {
     pt: 'Não foi possível carregar as lições.',
@@ -260,12 +284,12 @@ export const MESSAGES = {
     en: 'Content (lessons, practice statistics) is provided as-is, without a guarantee of continuous availability. Features may change or be removed at any time.',
   },
   'privacy.p1': {
-    pt: 'Coletamos apenas os dados necessários para o funcionamento da conta: nome de usuário, e-mail, senha (armazenada com hash) e suas estatísticas de prática (respostas, precisão, velocidade). Esses dados não são vendidos nem compartilhados com terceiros.',
-    en: 'We only collect the data needed to run your account: username, email, password (stored hashed), and your practice statistics (answers, accuracy, speed). This data is never sold or shared with third parties.',
+    pt: 'Coletamos apenas os dados necessários para o funcionamento da conta: nome de usuário, e-mail, senha e suas estatísticas de prática (respostas, precisão, velocidade). Esses dados não são vendidos nem compartilhados com terceiros.',
+    en: 'We only collect the data needed to run your account: username, email, password, and your practice statistics (answers, accuracy, speed). This data is never sold or shared with third parties.',
   },
   'privacy.p2': {
-    pt: 'O token de acesso vive apenas em memória no navegador e o token de atualização em um cookie httpOnly — nenhum dado sensível é gravado em localStorage. Para solicitar a exclusão da sua conta e dos dados associados, use o contato no rodapé.',
-    en: 'The access token lives only in browser memory and the refresh token in an httpOnly cookie — no sensitive data is written to localStorage. To request deletion of your account and associated data, use the contact link in the footer.',
+    pt: 'O token de acesso vive apenas em memória no navegador e o token de atualização em um cookie httpOnly — nenhum dado sensível é gravado em localStorage. Você pode trocar sua senha ou excluir sua conta e os dados associados a qualquer momento em Settings.',
+    en: 'The access token lives only in browser memory and the refresh token in an httpOnly cookie — no sensitive data is written to localStorage. You can change your password or delete your account and associated data at any time in Settings.',
   },
   'security.p1': {
     pt: 'Este projeto é entregue continuamente a partir da branch de produção — apenas a versão em produção recebe correções de segurança.',

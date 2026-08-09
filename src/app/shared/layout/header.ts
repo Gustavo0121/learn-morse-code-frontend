@@ -162,6 +162,26 @@ import { I18nService } from '../../core/i18n/i18n.service';
             </a>
             <a
               class="text-ink-muted transition-colors hover:text-ink"
+              routerLink="/account"
+              aria-label="Account"
+              title="Account"
+            >
+              <svg
+                class="h-5 w-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
+              </svg>
+            </a>
+            <a
+              class="text-ink-muted transition-colors hover:text-ink"
               routerLink="/settings"
               aria-label="Settings"
               title="Settings"
@@ -263,6 +283,7 @@ import { I18nService } from '../../core/i18n/i18n.service';
           <a class="{{ menuItemClasses }}" routerLink="/leaderboard" (click)="closeMenu()">
             Leaderboard
           </a>
+          <a class="{{ menuItemClasses }}" routerLink="/account" (click)="closeMenu()">Account</a>
           <a class="{{ menuItemClasses }}" routerLink="/settings" (click)="closeMenu()">Settings</a>
           <button class="{{ menuItemClasses }} w-full text-left" type="button" (click)="logout()">
             Sign out
