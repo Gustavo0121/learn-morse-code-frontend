@@ -1,0 +1,101 @@
+<main class="flex flex-1 flex-col py-12">
+  <app-heading text="Leaderboard" />
+
+  <app-divider class="mt-10 mb-8" />
+
+  <div class="flex flex-wrap items-center gap-4">
+    <select
+      class="cursor-pointer border border-line bg-transparent px-3 py-2 font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted transition-colors hover:border-ink hover:text-ink focus:border-ink focus:text-ink focus:outline-none"
+      aria-label="Speed"
+      (change)="onSpeedChange($event)"
+    >
+      @for (option of speedOptions; track option) {
+        <option class="bg-canvas text-ink" [value]="option" [selected]="speedWpm() === option">
+          {{ option }} wpm
+        </option>
+      }
+    </select>
+
+    <select
+      class="cursor-pointer border border-line bg-transparent px-3 py-2 font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted transition-colors hover:border-ink hover:text-ink focus:border-ink focus:text-ink focus:outline-none"
+      aria-label="Mode"
+      (change)="onExerciseTypeChange($event)"
+    >
+      @for (option of exerciseTypeOptions; track option.value) {
+        <option
+          class="bg-canvas text-ink"
+          [value]="option.value"
+          [selected]="exerciseType() === option.value"
+        >
+          {{ i18n.t(option.label) }}
+        </option>
+      }
+    </select>
+
+    <select
+      class="cursor-pointer border border-line bg-transparent px-3 py-2 font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted transition-colors hover:border-ink hover:text-ink focus:border-ink focus:text-ink focus:outline-none"
+      aria-label="Period"
+      (change)="onPeriodChange($event)"
+    >
+      @for (option of periodOptions; track option.value) {
+        <option
+          class="bg-canvas text-ink"
+          [value]="option.value"
+          [selected]="period() === option.value"
+        >
+          {{ i18n.t(option.label) }}
+        </option>
+      }
+    </select>
+  </div>
+
+  <div class="mt-10">
+    @if (error()) {
+      <p class="text-sm text-error" role="alert">{{ i18n.t('leaderboard.loadError') }}</p>
+      <div class="mt-6">
+        <button app-button variant="outline" type="button" (click)="load()">Try again</button>
+      </div>
+    } @else if (entries(); as entries) {
+      @if (entries.length === 0) {
+        <p class="max-w-xl text-sm leading-relaxed text-ink-muted">
+          {{ i18n.t('leaderboard.empty') }}
+        </p>
+      } @else {
+        <table class="w-full max-w-2xl border-collapse text-left">
+          <thead>
+            <tr
+              class="border-b border-line font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted"
+            >
+              <th class="py-3 pr-4 font-bold" scope="col">#</th>
+              <th class="py-3 pr-4 font-bold" scope="col">User</th>
+              <th class="py-3 pr-4 font-bold" scope="col">Accuracy</th>
+              <th class="py-3 pr-4 font-bold" scope="col">CPM</th>
+              <th class="py-3 font-bold" scope="col">Score</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (entry of entries; track entry.username) {
+              <tr class="border-b border-line">
+                <td
+                  class="py-4 pr-4 font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted"
+                >
+                  #{{ entry.position }}
+                </td>
+                <td class="py-4 pr-4 font-display text-lg font-extrabold tracking-widest text-ink">
+                  {{ entry.username }}
+                </td>
+                <td class="py-4 pr-4 text-sm text-ink-muted">
+                  {{ (entry.accuracy * 100).toFixed(0) }}%
+                </td>
+                <td class="py-4 pr-4 text-sm text-ink-muted">{{ entry.cpm.toFixed(1) }}</td>
+                <td class="py-4 text-sm text-ink-muted">{{ entry.score.toFixed(1) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    } @else {
+      <p class="text-sm text-ink-muted">{{ i18n.t('leaderboard.loading') }}</p>
+    }
+  </div>
+</main>

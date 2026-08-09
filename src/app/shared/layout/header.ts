@@ -65,6 +65,13 @@ import { I18nService } from '../../core/i18n/i18n.service';
           </button>
         </span>
 
+        <a
+          class="font-display text-xs font-bold uppercase tracking-wide-caps text-ink-muted transition-colors hover:text-ink"
+          routerLink="/translate"
+        >
+          Translate
+        </a>
+
         @if (authenticated()) {
           <span class="hidden items-center gap-7 sm:flex">
             <a
@@ -128,6 +135,49 @@ import { I18nService } from '../../core/i18n/i18n.service';
                 <path
                   d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M7 16h10"
                 />
+              </svg>
+            </a>
+            <a
+              class="text-ink-muted transition-colors hover:text-ink"
+              routerLink="/leaderboard"
+              aria-label="Leaderboard"
+              title="Leaderboard"
+            >
+              <svg
+                class="h-5 w-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M8 21h8" />
+                <path d="M12 17v4" />
+                <path d="M7 4h10v5a5 5 0 0 1-10 0V4Z" />
+                <path d="M7 5H4a2 2 0 0 0 0 4h1" />
+                <path d="M17 5h3a2 2 0 0 1 0 4h-1" />
+              </svg>
+            </a>
+            <a
+              class="text-ink-muted transition-colors hover:text-ink"
+              routerLink="/account"
+              aria-label="Account"
+              title="Account"
+            >
+              <svg
+                class="h-5 w-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
               </svg>
             </a>
             <a
@@ -230,6 +280,10 @@ import { I18nService } from '../../core/i18n/i18n.service';
           </a>
           <a class="{{ menuItemClasses }}" routerLink="/lessons" (click)="closeMenu()">Lessons</a>
           <a class="{{ menuItemClasses }}" routerLink="/practice" (click)="closeMenu()">Practice</a>
+          <a class="{{ menuItemClasses }}" routerLink="/leaderboard" (click)="closeMenu()">
+            Leaderboard
+          </a>
+          <a class="{{ menuItemClasses }}" routerLink="/account" (click)="closeMenu()">Account</a>
           <a class="{{ menuItemClasses }}" routerLink="/settings" (click)="closeMenu()">Settings</a>
           <button class="{{ menuItemClasses }} w-full text-left" type="button" (click)="logout()">
             Sign out

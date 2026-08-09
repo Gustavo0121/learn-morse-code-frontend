@@ -13,6 +13,22 @@ export const routes: Routes = [
     loadComponent: () => import('./features/login/login').then((m) => m.Login),
   },
   {
+    path: 'translate',
+    loadComponent: () => import('./features/translate/translate').then((m) => m.Translate),
+  },
+  {
+    path: 'terms',
+    loadComponent: () => import('./features/terms/terms').then((m) => m.Terms),
+  },
+  {
+    path: 'privacy',
+    loadComponent: () => import('./features/privacy/privacy').then((m) => m.Privacy),
+  },
+  {
+    path: 'security',
+    loadComponent: () => import('./features/security/security').then((m) => m.Security),
+  },
+  {
     // Área autenticada: lessons, practice e settings entram aqui nas Fases 2/5/6.
     path: '',
     canActivate: [authGuard],
@@ -24,6 +40,10 @@ export const routes: Routes = [
       {
         path: 'settings',
         loadComponent: () => import('./features/settings/settings').then((m) => m.Settings),
+      },
+      {
+        path: 'account',
+        loadComponent: () => import('./features/account/account').then((m) => m.Account),
       },
       {
         path: 'lessons',
@@ -41,6 +61,11 @@ export const routes: Routes = [
       {
         path: 'practice',
         loadComponent: () => import('./features/practice/practice').then((m) => m.Practice),
+      },
+      {
+        path: 'leaderboard',
+        loadComponent: () =>
+          import('./features/leaderboard/leaderboard').then((m) => m.Leaderboard),
       },
     ],
   },
