@@ -13,5 +13,6 @@ describe('App', () => {
 
     expect(screen.getByRole('link', { name: /lmc/i })).toBeVisible();
     expect(fixture.nativeElement.querySelector('router-outlet')).not.toBeNull();
+    expect(screen.getByRole('contentinfo')).toBeVisible();
   });
 });

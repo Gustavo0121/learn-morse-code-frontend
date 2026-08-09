@@ -3,22 +3,16 @@ import { RouterLink } from '@angular/router';
 
 import { I18nService } from '../../core/i18n/i18n.service';
 import { MessageKey } from '../../core/i18n/messages';
+import { KeyCaptureResult, KeyCaptureService } from '../../services/key-capture.service';
 import { Lesson, LessonsService } from '../../services/lessons.service';
 import { MorseAudioService, MorsePlaybackSettings } from '../../services/morse-audio.service';
 import { MorseCharacter } from '../../services/morse-characters.service';
-import { MorseInputService, MorsePressEvent } from '../../services/morse-input.service';
 import { MorseSettingsService } from '../../services/morse-settings.service';
-import { WORD_GAP_UNITS, unitMs } from '../../services/morse-timing';
-import {
-  PracticeAttempt,
-  PracticeRecord,
-  PracticeService,
-  TOUCH_INPUT_METHOD,
-} from '../../services/practice.service';
+import { PracticeAttempt, PracticeRecord, PracticeService } from '../../services/practice.service';
 import { Button } from '../../shared/ui/button/button';
 import { Divider } from '../../shared/ui/divider/divider';
 import { Heading } from '../../shared/ui/heading/heading';
-import { TapPad } from '../../shared/ui/tap-pad/tap-pad';
+import { KeyCapture } from '../../shared/ui/key-capture/key-capture';
 
 type TrainingMode = 'text_to_morse' | 'morse_to_text' | 'listening' | 'key_capture';
 
@@ -60,10 +54,8 @@ const DEFAULT_PLAYBACK: MorsePlaybackSettings = {
   wave_type: 'sine',
 };
 
-const FALLBACK_KEY = 'Space';
-const FALLBACK_WPM = 20;
-/** Piso do gap de auto-envio, para velocidades altas não engolirem a pausa. */
-const MIN_SUBMIT_GAP_MS = 600;
+/** Janela do destaque inline (verde/vermelho) antes do próximo passo. */
+const RESULT_HIGHLIGHT_MS = 500;
 
 /**
  * Treino guiado da lição: mix dos quatro modos de prática, restrito aos
@@ -72,7 +64,8 @@ const MIN_SUBMIT_GAP_MS = 600;
  */
 @Component({
   selector: 'app-lesson-training',
-  imports: [RouterLink, Button, Divider, Heading, TapPad],
+  imports: [RouterLink, Button, Divider, Heading, KeyCapture],
+  providers: [KeyCaptureService],
   templateUrl: './lesson-training.html',
   host: {
     class: 'flex flex-1 flex-col',
@@ -83,7 +76,7 @@ export class LessonTraining {
   readonly #lessonsService = inject(LessonsService);
   readonly #settings = inject(MorseSettingsService);
   readonly #audio = inject(MorseAudioService);
-  readonly #input = inject(MorseInputService);
+  readonly #capture = inject(KeyCaptureService);
   readonly #practice = inject(PracticeService);
   readonly #destroyRef = inject(DestroyRef);
   protected readonly i18n = inject(I18nService);
@@ -98,10 +91,6 @@ export class LessonTraining {
   protected readonly steps = signal<Step[]>([]);
   protected readonly index = signal(0);
   readonly #stepStartedAt = signal(0);
-
-  /** Símbolos já capturados no passo de key_capture (ex.: ".-"). */
-  protected readonly symbols = signal('');
-  protected readonly invalidPress = signal(false);
 
   protected readonly result = signal<PracticeRecord | null>(null);
   protected readonly submitting = signal(false);
@@ -122,20 +111,18 @@ export class LessonTraining {
     return step ? this.i18n.t(MODE_INSTRUCTIONS[step.mode]) : '';
   });
 
-  #pressDurations: number[] = [];
-  /** O passo usou a superfície de toque — envia `input_method: "Touch"`. */
-  #touchUsed = false;
   #pendingAttempt: PracticeAttempt | null = null;
-  #gapTimer: ReturnType<typeof setTimeout> | null = null;
+  #advanceTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     effect(() => this.load(this.id()));
-    const subscription = this.#input
-      .onSymbolDetected()
-      .subscribe((press) => this.#handlePress(press));
+    const subscription = this.#capture
+      .onCapture()
+      .subscribe((result) => this.#submitKeyCapture(result));
     this.#destroyRef.onDestroy(() => {
       subscription.unsubscribe();
-      this.#teardownStep();
+      this.#capture.stop();
+      this.#clearAdvanceTimer();
     });
   }
 
@@ -169,7 +156,8 @@ export class LessonTraining {
   /** Avança para o próximo passo; ao final, mostra o resumo do treino. */
   protected next(): void {
     if (this.index() + 1 >= this.steps().length) {
-      this.#teardownStep();
+      this.#capture.stop();
+      this.#clearAdvanceTimer();
       this.result.set(null);
       this.stage.set('done');
       return;
@@ -178,7 +166,7 @@ export class LessonTraining {
     this.#enterStep();
   }
 
-  /** Enter conduz o fluxo: começa, avança no resultado e reinicia no fim. */
+  /** Enter conduz o fluxo: começa e reinicia no fim (o próximo passo é automático). */
   protected advanceOnEnter(event: Event): void {
     if (this.stage() === 'study' && this.lesson()) {
       event.preventDefault();
@@ -188,11 +176,6 @@ export class LessonTraining {
     if (this.stage() === 'done') {
       event.preventDefault();
       this.start();
-      return;
-    }
-    if (this.result() && !this.submitting()) {
-      event.preventDefault();
-      this.next();
     }
   }
 
@@ -222,10 +205,6 @@ export class LessonTraining {
     }
   }
 
-  protected inputKeyLabel(): string {
-    return this.#settings.settings()?.input_key ?? FALLBACK_KEY;
-  }
-
   protected progress(): string {
     return `${this.index() + 1}/${this.steps().length}`;
   }
@@ -243,72 +222,42 @@ export class LessonTraining {
   }
 
   #enterStep(): void {
-    this.#teardownStep();
+    this.#capture.stop();
+    this.#clearAdvanceTimer();
     this.result.set(null);
     this.submitError.set(false);
     this.#pendingAttempt = null;
-    this.#pressDurations = [];
-    this.#touchUsed = false;
-    this.symbols.set('');
-    this.invalidPress.set(false);
     this.#stepStartedAt.set(performance.now());
 
     if (this.step()?.mode === 'key_capture') {
-      this.#input.startCapture();
+      this.#capture.start();
     }
   }
 
-  #handlePress(press: MorsePressEvent): void {
+  #clearAdvanceTimer(): void {
+    if (this.#advanceTimer !== null) {
+      clearTimeout(this.#advanceTimer);
+      this.#advanceTimer = null;
+    }
+  }
+
+  /** Pausa de auto-envio detectada pelo `KeyCaptureService`: fecha o attempt. */
+  #submitKeyCapture(result: KeyCaptureResult): void {
     const step = this.step();
-    if (
-      this.stage() !== 'exercise' ||
-      step?.mode !== 'key_capture' ||
-      this.result() ||
-      this.submitting()
-    ) {
-      return;
-    }
-
-    if (press.symbol === null) {
-      // O backend rejeitaria essa duração para o speed_wpm atual: descarta e avisa.
-      this.invalidPress.set(true);
-      return;
-    }
-
-    this.invalidPress.set(false);
-    this.#touchUsed ||= press.source === 'touch';
-    this.#pressDurations.push(press.durationMs);
-    this.symbols.set(this.symbols() + press.symbol);
-
-    if (this.#gapTimer !== null) {
-      clearTimeout(this.#gapTimer);
-    }
-    this.#gapTimer = setTimeout(() => this.#submitKeyCapture(), this.#submitGapMs());
-  }
-
-  /** Pausa sem novos símbolos que encerra o caractere (gap de palavra, com piso). */
-  #submitGapMs(): number {
-    const speedWpm = this.#settings.settings()?.speed_wpm ?? FALLBACK_WPM;
-    return Math.max(MIN_SUBMIT_GAP_MS, WORD_GAP_UNITS * unitMs(speedWpm));
-  }
-
-  #submitKeyCapture(): void {
-    const step = this.step();
-    if (!step || this.#pressDurations.length === 0) {
+    if (!step) {
       return;
     }
     this.#submit({
       exercise_type: 'key_capture',
-      input_method: this.#touchUsed ? TOUCH_INPUT_METHOD : this.inputKeyLabel(),
+      ...result,
       question: step.question,
       expected_answer: step.expected,
-      press_durations: [...this.#pressDurations],
       response_time: this.#responseTime(),
     });
   }
 
   #submit(attempt: PracticeAttempt): void {
-    this.#teardownStep();
+    this.#capture.stop();
     this.#pendingAttempt = attempt;
     this.submitting.set(true);
     this.submitError.set(false);
@@ -322,6 +271,7 @@ export class LessonTraining {
           this.totalCorrect.update((correct) => correct + 1);
         }
         this.result.set(record);
+        this.#advanceTimer = setTimeout(() => this.next(), RESULT_HIGHLIGHT_MS);
       },
       error: () => {
         this.submitting.set(false);
@@ -332,6 +282,25 @@ export class LessonTraining {
 
   #responseTime(): number {
     return Math.max(1, Math.round(performance.now() - this.#stepStartedAt()));
+  }
+
+  /** Destaque de ~0,5s no caractere/código do passo (feedback inline, issue #32). */
+  protected outcome(): 'correct' | 'wrong' | null {
+    const result = this.result();
+    return result ? (result.correct ? 'correct' : 'wrong') : null;
+  }
+
+  protected optionClass(option: string): string {
+    const base = 'min-w-20 cursor-pointer border px-6 py-4 font-display text-xl font-extrabold';
+    const tracking =
+      this.step()?.mode === 'text_to_morse' ? ' tracking-[0.4em] pl-[calc(1.5rem+0.4em)]' : '';
+    const result = this.result();
+    if (result && option === result.user_answer) {
+      return result.correct
+        ? `${base}${tracking} border-success text-success`
+        : `${base}${tracking} border-error text-error`;
+    }
+    return `${base}${tracking} border-line text-ink transition-colors hover:border-ink`;
   }
 
   #buildOptions(
@@ -357,13 +326,5 @@ export class LessonTraining {
       [result[i], result[j]] = [result[j], result[i]];
     }
     return result;
-  }
-
-  #teardownStep(): void {
-    this.#input.stopCapture();
-    if (this.#gapTimer !== null) {
-      clearTimeout(this.#gapTimer);
-      this.#gapTimer = null;
-    }
   }
 }

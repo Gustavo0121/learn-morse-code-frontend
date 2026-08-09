@@ -181,4 +181,57 @@ describe('AuthService', () => {
     expect(service.isAuthenticated()).toBe(false);
     expect(navigate).toHaveBeenCalledWith(['/login']);
   });
+
+  it('changePassword: envia a senha atual e a nova para o backend', () => {
+    let done = false;
+    service
+      .changePassword({ current_password: 'antiga', new_password: 'nova-S3nh4!' })
+      .subscribe(() => (done = true));
+
+    const request = http.expectOne('/api/users/change-password');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({
+      current_password: 'antiga',
+      new_password: 'nova-S3nh4!',
+    });
+    request.flush(null, { status: 204, statusText: 'No Content' });
+
+    expect(done).toBe(true);
+  });
+
+  it('deleteAccount: em sucesso, encerra a sessão local e navega para a home', () => {
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+    service.refresh().subscribe();
+    http.expectOne('/api/auth/refresh').flush({ access: 'token-6' });
+
+    service.deleteAccount({ current_password: 'segredo' }).subscribe();
+    const request = http.expectOne('/api/users/profile');
+    expect(request.request.method).toBe('DELETE');
+    expect(request.request.body).toEqual({ current_password: 'segredo' });
+    request.flush(null, { status: 204, statusText: 'No Content' });
+
+    expect(service.isAuthenticated()).toBe(false);
+    expect(navigate).toHaveBeenCalledWith(['/']);
+  });
+
+  it('deleteAccount: falha não altera a sessão local', () => {
+    service.refresh().subscribe();
+    http.expectOne('/api/auth/refresh').flush({ access: 'token-7' });
+
+    let failed = false;
+    service
+      .deleteAccount({ current_password: 'errada' })
+      .subscribe({ error: () => (failed = true) });
+
+    http
+      .expectOne('/api/users/profile')
+      .flush(
+        { current_password: ['Senha atual incorreta.'] },
+        { status: 400, statusText: 'Bad Request' },
+      );
+
+    expect(failed).toBe(true);
+    expect(service.isAuthenticated()).toBe(true);
+  });
 });

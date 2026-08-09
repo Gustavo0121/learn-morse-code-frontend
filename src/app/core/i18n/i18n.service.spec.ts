@@ -4,6 +4,7 @@ import { I18nService } from './i18n.service';
 
 describe('I18nService', () => {
   beforeEach(() => localStorage.removeItem('lmc.locale'));
+  afterEach(() => localStorage.removeItem('lmc.locale'));
 
   function setup(): I18nService {
     return TestBed.inject(I18nService);

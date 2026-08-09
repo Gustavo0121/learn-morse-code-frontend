@@ -29,14 +29,15 @@ src/app/
 - **Bootstrap silencioso**: `provideAppInitializer` chama `POST /api/auth/refresh` no carregamento para restaurar a sessão.
 - **Proteção CSRF**: as rotas que dependem do cookie (`/auth/refresh`, `/auth/logout`) recebem o header `X-CSRF-Protection: 1` exigido pelo backend.
 - **Refresh automático**: o `authInterceptor` anexa `Authorization: Bearer` e, em `401`, renova o token e reenvia a requisição original (requisições simultâneas compartilham um único refresh); se o refresh falhar, a sessão é limpa e o usuário volta ao login.
-- **Guard**: `authGuard` protege a área autenticada (`/dashboard`, `/lessons`, `/practice`, `/settings`) com redirect para `/login?returnUrl=...`.
+- **Guard**: `authGuard` protege a área autenticada (`/dashboard`, `/lessons`, `/practice`, `/leaderboard`, `/settings`) com redirect para `/login?returnUrl=...`.
 - Após login, as preferências Morse (`GET /api/users/morse-settings`) e o perfil do usuário (`GET /api/users/profile`, exposto em `AuthService.currentUser`) são carregados para memória.
 - **Cadastro**: a tela de login alterna para o modo "Create account" (`POST /api/auth/register` com `{username, email, password}`) e autentica automaticamente após criar a conta.
 
 ## Settings (preferências Morse)
 
-- Tela `/settings` (autenticada) com blocos **Audio** (velocidade `5–60 WPM`, frequência Grave/Médio/Agudo = `400/700/1000 Hz`, volume `0–1`, tipo de onda) e **Input** (tecla de captura).
+- Tela `/settings` (autenticada) com blocos **Audio** (velocidade `5–25 WPM`, frequência Grave/Médio/Agudo = `400/700/1000 Hz`, volume `0–1`, tipo de onda) e **Input** (tecla de captura).
 - As opções espelham exatamente os choices/validators do backend; a tecla de captura é restrita à whitelist retornada por `GET /api/morse-settings/allowed-keys` (mesma lista que o servidor valida — nada de blacklist local).
+- O bloco **Input** é ocultado em dispositivos de ponteiro grosseiro (`pointer-coarse:hidden`, mesma variante do Tailwind usada por `app-tap-pad`) — no toque o `input_method` é sempre `"Touch"`, a tecla configurada não se aplica; a UI só some, o valor salvo no backend é preservado.
 - Alterações passam por **confirmação visual** antes do `PUT /api/users/morse-settings`; nomes de campo seguem o contrato (`speed_wpm`, nunca `speed`).
 - **Test sound** toca "LMC" em Morse com as configurações do rascunho — demonstra timbre e velocidade antes de salvar.
 
@@ -53,6 +54,13 @@ src/app/
 - A classificação usa **exatamente a regra do backend** (`morse-timing.ts` ⇄ `apps/practice/services.py`): ponto abaixo de 2 unidades (`1200/speed_wpm` ms), traço a partir daí, e `symbol: null` quando a duração sai da faixa `0 < d < 6 unidades` que o servidor aceita — a UI sinaliza entrada inválida em vez de divergir da validação do backend.
 - Robustez: ignora auto-repeat da tecla segurada, ignora outras teclas, faz `preventDefault` só na tecla de captura (Space não rola a página) e descarta pressões interrompidas por perda de foco da janela.
 
+### Fluxo de key_capture compartilhado (`KeyCaptureService` + `app-key-capture`)
+
+- O fluxo do exercício de key_capture é **único** para a prática livre e o treino guiado: `services/key-capture.service.ts` acumula os pressionamentos do `MorseInputService` enquanto ativo (`start()`/`stop()`), expõe os signals `symbols`/`invalidPress`, e após a pausa de auto-envio (gap de palavra, mínimo 600 ms) emite `onCapture()` com `press_durations` + `input_method` (tecla configurada ou `"Touch"`).
+- O serviço **não é root**: cada feature o provê no próprio componente (uma instância por tela) e arma/desarma a captura no ciclo do round; `question`/`expected_answer`/`response_time` e o envio (`PracticeService.submit`) continuam com a feature.
+- O bloco visual (`shared/ui/key-capture`, seletor `app-key-capture`) renderiza caractere alvo, símbolos capturados, aviso de pressão inválida, dica da tecla e o `app-tap-pad`; usa `display: contents` para os filhos participarem do layout flex da tela hospedeira.
+- `onPress()` notifica todo pressionamento enquanto ativo (inclusive inválidos) — é o gancho que a prática usa para disparar o relógio da sessão no primeiro input.
+
 ## Lições
 
 - `/lessons` lista a trilha (`GET /api/lessons`, já ordenada por `order`) com número, título, descrição e nível; estados de carregamento, erro (com retry) e vazio.
@@ -65,11 +73,13 @@ src/app/
 - **Sequência conduzida**: percorre os quatro modos em ordem fixa — Texto → Morse, Morse → Texto, Listening e Key capture — cada bloco cobrindo todos os caracteres da lição (embaralhados), do reconhecimento à produção.
 - Restrito ao conteúdo da lição: sorteio e distratores vêm apenas de `lesson.characters`.
 - Cada tentativa é registrada em `POST /api/practice/history` com o mesmo contrato do módulo de prática (conta para estatísticas e dashboard).
-- Enter conduz o fluxo (começar, avançar no resultado, repetir no resumo); ao final, resumo com precisão e acertos/total.
+- Enter conduz o fluxo (começar, repetir no resumo — o avanço entre exercícios é automático, ver feedback inline abaixo); ao final, resumo com precisão e acertos/total.
 
 ## Prática (`/practice`)
 
 - Quatro modos: **Key capture** (vê o caractere e transmite o código com a tecla configurada), **Texto → Morse** e **Morse → Texto** (múltipla escolha) e **Listening** (ouve o código e identifica o caractere).
+- As regras da sessão vivem em `services/practice-session.service.ts` (`PracticeSessionService`, provido no componente junto com o `KeyCaptureService` — uma instância por tela): filtros de conteúdo e pool de sorteio, montagem dos rounds e alternativas, contadores (total/acertos/precisão/cpm), relógio e metas da sessão, e o envio das tentativas com retry (integrando `PracticeService` e o fluxo de key_capture). O componente `practice.ts` fica só com a orquestração de UI: carga do alfabeto, rótulos i18n dos modos, formatação de relógio/labels, áudio e o atalho Enter.
+- **Feedback inline** (issue #32): ao responder, o exercício continua montado — a opção clicada (ou o texto capturado no key_capture, via `outcome` de `KeyCapture`) ganha destaque verde/vermelho (`--color-success`/`--color-error`, únicas exceções à paleta neutra) por `RESULT_HIGHLIGHT_MS` (500 ms), junto de um banner compacto (`role="status"`, `aria-live="polite"`) com "Correto"/"Errado" e, se errado, a resposta esperada. Passado o destaque, `PracticeSessionService` avança sozinho pro próximo round (sem clique/Enter) — mesmo mecanismo replicado em `LessonTraining`, que duplica esse fluxo (ver nota abaixo).
 - **Barras de configuração da sessão** (estilo monkeytype), visíveis após escolher o modo: conteúdo (**Punctuation**/**Numbers** — letras sempre entram no sorteio), tipo de sessão (**Time**/**Characters**) e valores (15/30/60/120 s ou 10/25/50/100 caracteres). Mudar qualquer opção reinicia a sessão.
 - Fim de sessão (tempo esgotado ou meta de caracteres atingida) mostra um painel de resultados — precisão em destaque, tipo do teste, configuração da sessão, velocidade (cpm, mesma fórmula do agregado do backend: caracteres ÷ soma dos tempos de resposta), acertos/total e tempo — com **Restart** e **Change mode**.
 - Tela de treino em layout de foco: modo, progresso (`N/meta` na sessão por caracteres), tempo (`mm:ss`, regressivo na sessão por tempo; o relógio só dispara no primeiro input do usuário) e precisão no topo; caractere/código em destaque no centro.
@@ -78,17 +88,38 @@ src/app/
 - Quando o round usou a superfície de toque, `input_method` vai como o literal `"Touch"` (aceito pelo backend fora da whitelist `AllowedKey`); pelo teclado, vai a tecla configurada.
 - Feedback de acerto/erro com resposta esperada, resposta dada e tempo de reação.
 
+## Tradutor (`/translate`)
+
+- Rota **pública** (fora do `authGuard`), lazy — funciona sem login e sem rede, com link visível no header tanto para visitantes anônimos quanto autenticados (porta de entrada pública para registro).
+- `services/morse-alphabet.ts` mantém uma cópia local, imutável, do alfabeto ITU (letras, números e pontuação — mesmo conteúdo do seed do backend, `apps/morse/migrations/0004_seed_morse_characters.py`), para não depender de `GET /api/morse-characters` (a API inteira exige `IsAuthenticated`). **Duplicação consciente**: o padrão ITU-R M.1677-1 é estável, o risco de divergência entre esta constante e a tabela `MorseCharacter` do backend é baixo, mas fica registrado aqui deliberadamente.
+- `services/morse-translator.ts` (funções puras `textToMorse`/`morseToText`) faz a tradução bidirecional reativa (sem botão "traduzir"): caracteres de texto sem código Morse são marcados com `#` e sequências Morse inválidas com `?`, ambos listados como aviso, sem interromper o resto da tradução.
+- O código Morse produzido usa exatamente o formato aceito por `MorseAudioService.playSequence` (espaço entre letras, `/` entre palavras), permitindo ouvir o resultado com um clique; como visitante anônimo é o caso comum nesta rota, usa o mesmo fallback local `DEFAULT_PLAYBACK` das demais telas quando `MorseSettingsService.settings()` é `null`.
+
 ## Dashboard (`/dashboard`)
 
 - Bloco **Progress** com o agregado de `GET /api/users/statistics` (calculado só no backend): precisão, velocidade média (cpm), tempo total de treino e acertos/tentativas. Sem tentativas registradas, precisão e velocidade aparecem como `—`.
 - Bloco **Recent training** com os últimos 8 registros de `GET /api/practice/history` (já ordenado do mais recente): acerto/erro, questão → resposta, modo, tempo de reação e data. Estado vazio traz chamada para `/practice`.
 - Cada bloco tem carregamento, erro e retry independentes — a falha de um não derruba o outro.
 
+## Leaderboard (`/leaderboard`)
+
+- Ranking cross-user de `GET /api/leaderboard?speed_wpm=<n>&exercise_type=<tipo>&period=<janela>` (`services/leaderboard.service.ts`), filtrado por três grupos de pílulas no mesmo estilo de `features/settings` (velocidade `5–25`, modo `key_capture`/`multiple_choice`/`listening`, período geral/semanal/mensal). Trocar qualquer filtro dispara uma nova busca — não há confirmação, é leitura.
+- Defaults: `speed_wpm=20`, `exercise_type='key_capture'`, `period='general'`.
+- Cada posição mostra `#posição`, usuário, precisão e cpm; carregamento, erro (com retry) e vazio seguem o mesmo padrão do Dashboard.
+- `position`/`accuracy`/`cpm`/`score` são sempre calculados no backend a partir do histórico — o cliente nunca envia nem deriva pontuação.
+
 ## Idiomas (i18n)
 
 - Seletor **PT / EN** no header, persistido em `localStorage` (`lmc.locale`; preferência de idioma, não é dado sensível). Padrão: `pt`.
 - Tradução em runtime via `I18nService` (`core/i18n/`): `t(chave, params?)` lê o signal `locale`, então bindings e computeds que o chamam reagem à troca de idioma sem reload.
-- Dicionário tipado em `core/i18n/messages.ts` (`MessageKey` é união literal — chave inexistente não compila). O locale `pt` corresponde à UI original; rótulos editoriais em inglês do design (headings, "Sign in", "Next", barras da prática) são iguais nos dois idiomas e ficam fora do dicionário.
+- Dicionário tipado em `core/i18n/messages.ts` (`MessageKey` é união literal — chave inexistente não compila). O locale `pt` corresponde à UI original; rótulos editoriais em inglês do design (headings, "Sign in", "Play code", barras da prática) são iguais nos dois idiomas e ficam fora do dicionário.
+
+## Footer institucional (`/terms`, `/privacy`, `/security`)
+
+- `shared/layout/footer.ts` (não `shared/ui/`): peça única do shell renderizada em `app.html` junto do `Header`, presente em todas as rotas (públicas e autenticadas). `shared/ui/` fica reservado a átomos reutilizáveis em várias telas (`button`, `divider`, `heading`, ...).
+- Links com texto descritivo (ao contrário do header, que usa ícones): GitHub (externo, `rel="noopener noreferrer"`), contato (`mailto:`), termos, privacidade e segurança — todos traduzidos via `I18nService.t()` (chaves `footer.*` em `messages.ts`).
+- `/terms` e `/privacy` são rotas públicas com conteúdo mínimo e honesto (não é texto jurídico revisado) — final fica para issue separada.
+- `/security` resume o `SECURITY.md` do repositório e linka para a política completa em `.../security/policy` no GitHub.
 
 ## CI/CD e deploy
 
@@ -121,4 +152,4 @@ Checklist de hardening (Fase 8) aplicado e verificado:
 
 ## Design system
 
-Identidade minimalista premium (fundo `#050505`, texto `#FFFFFF`/`#A0A0A0`, fontes Inter/Manrope). Os design tokens ficam em `src/tailwind.css` (`@theme`), com contraste validado WCAG AA/AAA; o tema do Angular Material é alinhado a eles em `src/styles.scss`.
+Identidade minimalista premium (fundo `#050505`, texto `#FFFFFF`/`#A0A0A0`, fontes Inter/Manrope). Os design tokens ficam em `src/tailwind.css` (`@theme`), com contraste documentado no comentário do arquivo (a paleta neutra é AA/AAA; `--color-error`/`--color-success` são as únicas exceções deliberadas, com tons fortes por pedido do produto — `--color-error` abaixo de AA, ver nota no arquivo); o tema do Angular Material é alinhado a eles em `src/styles.scss`.

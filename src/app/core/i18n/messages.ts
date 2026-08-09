@@ -15,7 +15,6 @@ export const MESSAGES = {
   'common.level': { pt: 'Nível {level}', en: 'Level {level}' },
   'common.listenTo': { pt: 'Ouvir {character}', en: 'Listen to {character}' },
   'common.expected': { pt: 'Esperado:', en: 'Expected:' },
-  'common.yourAnswer': { pt: 'Sua resposta:', en: 'Your answer:' },
   'common.submitting': { pt: 'Registrando…', en: 'Recording…' },
   'common.submitError': {
     pt: 'Não foi possível registrar a tentativa.',
@@ -101,6 +100,22 @@ export const MESSAGES = {
   'dashboard.miss': { pt: 'Erro', en: 'Miss' },
   'dashboard.multipleChoice': { pt: 'Múltipla escolha', en: 'Multiple choice' },
 
+  // Leaderboard
+  'leaderboard.keyCapture': { pt: 'Captura por tecla', en: 'Key capture' },
+  'leaderboard.listening': { pt: 'Escuta', en: 'Listening' },
+  'leaderboard.periodGeneral': { pt: 'Geral', en: 'Overall' },
+  'leaderboard.periodWeekly': { pt: 'Semanal', en: 'Weekly' },
+  'leaderboard.periodMonthly': { pt: 'Mensal', en: 'Monthly' },
+  'leaderboard.loadError': {
+    pt: 'Não foi possível carregar o ranking.',
+    en: 'Could not load the leaderboard.',
+  },
+  'leaderboard.loading': { pt: 'Carregando ranking…', en: 'Loading leaderboard…' },
+  'leaderboard.empty': {
+    pt: 'Ninguém no ranking ainda para esse filtro. Treine para aparecer aqui.',
+    en: 'No one on the leaderboard yet for this filter. Train to show up here.',
+  },
+
   // Settings
   'settings.freqLow': { pt: 'Grave', en: 'Low' },
   'settings.freqMid': { pt: 'Médio', en: 'Mid' },
@@ -123,6 +138,30 @@ export const MESSAGES = {
     en: 'Could not save. Try again.',
   },
   'settings.loading': { pt: 'Carregando preferências…', en: 'Loading preferences…' },
+
+  // Conta (Settings)
+  'account.passwordChanged': {
+    pt: 'Senha alterada com sucesso.',
+    en: 'Password changed successfully.',
+  },
+  'account.passwordMismatch': { pt: 'As senhas não coincidem.', en: 'Passwords don’t match.' },
+  'account.changePasswordError': {
+    pt: 'Não foi possível trocar a senha. Tente novamente.',
+    en: 'Could not change the password. Try again.',
+  },
+  'account.deleteHint': {
+    pt: 'Digite {username} e sua senha atual para confirmar. Essa ação não pode ser desfeita.',
+    en: 'Type {username} and your current password to confirm. This action cannot be undone.',
+  },
+  'account.deleteError': {
+    pt: 'Não foi possível excluir a conta. Tente novamente.',
+    en: 'Could not delete the account. Try again.',
+  },
+  'account.tooManyAttempts': {
+    pt: 'Muitas tentativas. Aguarde um instante e tente novamente.',
+    en: 'Too many attempts. Wait a moment and try again.',
+  },
+  'account.loading': { pt: 'Carregando conta…', en: 'Loading account…' },
 
   // Lessons
   'lessons.error': {
@@ -201,7 +240,69 @@ export const MESSAGES = {
   'practice.test': { pt: 'Teste', en: 'Test' },
   'practice.session': { pt: 'Sessão', en: 'Session' },
   'practice.speed': { pt: 'Velocidade', en: 'Speed' },
-  'practice.responseTime': { pt: 'Tempo de resposta:', en: 'Response time:' },
+
+  // Tradutor
+  'translate.intro': {
+    pt: 'Traduza texto para código Morse ou o contrário — em tempo real, sem precisar entrar na conta.',
+    en: 'Translate text to Morse code or the other way around — live, no account needed.',
+  },
+  'translate.textPlaceholder': { pt: 'Digite o texto aqui…', en: 'Type text here…' },
+  'translate.morsePlaceholder': {
+    pt: 'Digite Morse aqui (. e -, / entre palavras)…',
+    en: 'Type Morse here (. and -, / between words)…',
+  },
+  'translate.unsupportedWarning': {
+    pt: 'Sem código Morse (marcado com #): {chars}',
+    en: 'No Morse code (marked with #): {chars}',
+  },
+  'translate.invalidWarning': {
+    pt: 'Sequência inválida (marcada com ?): {tokens}',
+    en: 'Invalid sequence (marked with ?): {tokens}',
+  },
+  'translate.copy': { pt: 'Copiar', en: 'Copy' },
+  'translate.copied': { pt: 'Copiado!', en: 'Copied!' },
+  'translate.listenAria': { pt: 'Ouvir a sequência Morse', en: 'Listen to the Morse sequence' },
+  'translate.cta': {
+    pt: 'Crie uma conta para treinar no seu ritmo e acompanhar seu progresso.',
+    en: 'Create an account to train at your own pace and track your progress.',
+  },
+
+  // Footer
+  'footer.github': { pt: 'GitHub', en: 'GitHub' },
+  'footer.contact': { pt: 'Contato', en: 'Contact' },
+  'footer.terms': { pt: 'Termos de serviço', en: 'Terms of Service' },
+  'footer.privacy': { pt: 'Política de privacidade', en: 'Privacy Policy' },
+  'footer.security': { pt: 'Segurança', en: 'Security' },
+
+  // Páginas institucionais
+  'terms.p1': {
+    pt: 'Learn Morse Code é um projeto pessoal e educacional, sem fins comerciais. Ao criar uma conta, você concorda em usá-la para aprender e praticar código Morse, sem tentar abusar, sobrecarregar ou comprometer a segurança do serviço.',
+    en: "Learn Morse Code is a personal, educational, non-commercial project. By creating an account, you agree to use it to learn and practice Morse code, without attempting to abuse, overload, or compromise the service's security.",
+  },
+  'terms.p2': {
+    pt: 'O conteúdo (lições, estatísticas de prática) é fornecido como está, sem garantia de disponibilidade contínua. Funcionalidades podem mudar ou ser removidas a qualquer momento.',
+    en: 'Content (lessons, practice statistics) is provided as-is, without a guarantee of continuous availability. Features may change or be removed at any time.',
+  },
+  'privacy.p1': {
+    pt: 'Coletamos apenas os dados necessários para o funcionamento da conta: nome de usuário, e-mail, senha e suas estatísticas de prática (respostas, precisão, velocidade). Esses dados não são vendidos nem compartilhados com terceiros.',
+    en: 'We only collect the data needed to run your account: username, email, password, and your practice statistics (answers, accuracy, speed). This data is never sold or shared with third parties.',
+  },
+  'privacy.p2': {
+    pt: 'O token de acesso vive apenas em memória no navegador e o token de atualização em um cookie httpOnly — nenhum dado sensível é gravado em localStorage. Você pode trocar sua senha ou excluir sua conta e os dados associados a qualquer momento em Settings.',
+    en: 'The access token lives only in browser memory and the refresh token in an httpOnly cookie — no sensitive data is written to localStorage. You can change your password or delete your account and associated data at any time in Settings.',
+  },
+  'security.p1': {
+    pt: 'Este projeto é entregue continuamente a partir da branch de produção — apenas a versão em produção recebe correções de segurança.',
+    en: 'This project ships continuously from the production branch — only the version in production receives security fixes.',
+  },
+  'security.p2': {
+    pt: 'Encontrou uma vulnerabilidade? Não abra uma issue pública. Use o Private Vulnerability Reporting do GitHub ou envie um e-mail com o assunto "[SECURITY] learn-morse-code" para o contato no rodapé.',
+    en: 'Found a vulnerability? Don’t open a public issue. Use GitHub’s Private Vulnerability Reporting, or email with the subject "[SECURITY] learn-morse-code" to the contact link in the footer.',
+  },
+  'security.viewFull': {
+    pt: 'Ver política completa no GitHub',
+    en: 'View full policy on GitHub',
+  },
 } satisfies Record<string, Record<Locale, string>>;
 
 export type MessageKey = keyof typeof MESSAGES;
